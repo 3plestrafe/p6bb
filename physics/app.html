@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Physics Black Belt — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#09090e;--bg2:#0f0f16;--bg3:#14141d;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#e8e6e0;--text2:rgba(232,230,224,0.58);--text3:rgba(232,230,224,0.3);
+  --gold:#c9a96e;--gold2:#e8c98a;
+  --teal:#2dd4a0;--teal-dim:rgba(45,212,160,0.1);
+  --red:#e05555;
+  --belt-white:#e8e6e0;
+  --belt-yellow:#f5c842;
+  --belt-orange:#f5852a;
+  --belt-blue:#4a90d9;
+  --belt-brown:#8B5E3C;
+  --belt-black:#1a1a1a;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'IBM Plex Sans',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px;opacity:0.028;
+}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 32px;
+  background:rgba(9,9,14,0.92);
+  border-bottom:0.5px solid var(--border);
+  backdrop-filter:blur(12px);
+}
+.nav-logo{
+  font-family:var(--serif);font-size:15px;color:var(--text);
+  text-decoration:none;display:flex;align-items:center;gap:10px;
+}
+.nav-logo em{font-style:italic;color:var(--gold);}
+.nav-logo .belt-pip{
+  display:flex;gap:2px;
+}
+.nav-logo .belt-pip span{
+  width:8px;height:8px;border-radius:50%;
+}
+.nav-right{display:flex;align-items:center;gap:20px;}
+.nav-user{
+  font-family:var(--mono);font-size:11px;color:var(--text3);
+  letter-spacing:0.05em;
+}
+.nav-user span{color:var(--gold);}
+.nav-signout{
+  font-family:var(--mono);font-size:11px;color:var(--text3);
+  background:none;border:0.5px solid var(--border);border-radius:3px;
+  padding:5px 12px;cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;
+}
+.nav-signout:hover{color:var(--text);border-color:var(--border2);}
+
+/* ── LOADING SCREEN ── */
+#loading-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:200;transition:opacity 0.4s;
+}
+#loading-screen.hidden{opacity:0;pointer-events:none;}
+.loading-emblem{font-size:36px;margin-bottom:16px;animation:pulse 1.5s infinite;}
+.loading-text{font-family:var(--mono);font-size:12px;color:var(--text3);letter-spacing:0.1em;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* ── PAGE ── */
+.page{
+  position:relative;z-index:1;
+  max-width:980px;margin:0 auto;padding:0 32px 100px;
+}
+
+/* ── HERO STRIP ── */
+.hero-strip{
+  padding:40px 0 32px;
+  border-bottom:0.5px solid var(--border);
+  margin-bottom:40px;
+  opacity:0;animation:rise 0.6s 0.1s forwards;
+}
+.hero-strip-top{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  gap:24px;flex-wrap:wrap;
+}
+.hero-greeting{
+  font-family:var(--serif);font-size:clamp(22px,4vw,32px);
+  font-weight:400;color:#fff;line-height:1.2;margin-bottom:6px;
+}
+.hero-greeting em{font-style:italic;color:var(--gold);}
+.hero-sub{font-size:13px;color:var(--text3);font-family:var(--mono);letter-spacing:0.05em;}
+
+/* Stats row */
+.stats-row{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;
+}
+.stat-chip{
+  background:var(--bg2);border:0.5px solid var(--border);border-radius:4px;
+  padding:12px 18px;display:flex;flex-direction:column;gap:3px;min-width:100px;
+}
+.stat-chip-num{
+  font-family:var(--serif);font-size:22px;color:var(--gold);line-height:1;
+}
+.stat-chip-label{
+  font-family:var(--mono);font-size:10px;color:var(--text3);
+  letter-spacing:0.07em;text-transform:uppercase;
+}
+
+/* ── SECTION HEADER ── */
+.section-header{
+  display:flex;align-items:center;gap:16px;margin-bottom:20px;
+}
+.section-label{
+  font-size:10px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--text3);font-family:var(--mono);white-space:nowrap;
+}
+.section-line{flex:1;height:0.5px;background:var(--border);}
+
+/* ── CHAPTER GRID ── */
+.chapters-section{
+  opacity:0;animation:rise 0.6s 0.2s forwards;
+  margin-bottom:48px;
+}
+.grade-label{
+  font-family:var(--mono);font-size:10px;color:var(--text3);
+  letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:12px;padding-left:2px;
+}
+.chapters-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+  gap:10px;
+  margin-bottom:24px;
+}
+.chapter-card{
+  background:var(--bg2);border:0.5px solid var(--border);
+  border-radius:6px;padding:20px;
+  display:flex;flex-direction:column;gap:12px;
+  transition:border-color 0.2s,transform 0.2s;
+  position:relative;overflow:hidden;cursor:pointer;
+}
+.chapter-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:0.5px;
+  background:linear-gradient(90deg,transparent,rgba(201,169,110,0.15),transparent);
+}
+.chapter-card:hover:not(.locked){
+  border-color:rgba(201,169,110,0.25);transform:translateY(-2px);
+}
+.chapter-card.locked{
+  opacity:0.45;cursor:not-allowed;
+}
+.chapter-card.locked::after{
+  content:'🔒';position:absolute;top:14px;right:14px;font-size:13px;
+}
+
+.chapter-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.chapter-icon{font-size:24px;line-height:1;}
+.chapter-quarter{
+  font-family:var(--mono);font-size:9px;color:var(--text3);
+  letter-spacing:0.08em;text-transform:uppercase;
+  border:0.5px solid var(--border);border-radius:2px;padding:2px 7px;
+  white-space:nowrap;
+}
+.chapter-title{
+  font-family:var(--serif);font-size:16px;font-weight:400;color:#fff;line-height:1.3;
+}
+.chapter-desc{font-size:12px;color:var(--text3);line-height:1.6;font-weight:300;}
+
+/* Belt progress inside card */
+.belt-track{display:flex;flex-direction:column;gap:6px;}
+.belt-track-row{display:flex;align-items:center;gap:8px;}
+.belt-dots{display:flex;gap:3px;}
+.belt-dot{
+  width:10px;height:10px;border-radius:50%;
+  border:0.5px solid rgba(255,255,255,0.1);
+  transition:all 0.3s;
+}
+.belt-dot.earned{border-color:transparent;}
+.belt-dot.current{box-shadow:0 0 0 2px rgba(201,169,110,0.4);}
+.belt-current-label{
+  font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.04em;
+}
+
+.chapter-cta{
+  display:flex;gap:6px;margin-top:4px;
+}
+.cta-small{
+  font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:3px;
+  cursor:pointer;text-decoration:none;letter-spacing:0.04em;transition:all 0.2s;border:none;
+}
+.cta-gold{background:rgba(201,169,110,0.12);color:var(--gold);}
+.cta-gold:hover{background:rgba(201,169,110,0.22);}
+.cta-muted{background:rgba(255,255,255,0.04);color:var(--text3);}
+.cta-muted:hover{background:rgba(255,255,255,0.08);color:var(--text2);}
+
+/* ── BELT LEGEND ── */
+.belt-legend{
+  display:flex;gap:6px;flex-wrap:wrap;margin-bottom:32px;
+  opacity:0;animation:rise 0.6s 0.25s forwards;
+}
+.belt-legend-item{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:10px;color:var(--text3);
+  padding:4px 10px;border-radius:3px;border:0.5px solid var(--border);
+}
+.belt-legend-dot{width:8px;height:8px;border-radius:50%;}
+
+/* ── CHAPTER DETAIL MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(9,9,14,0.88);
+  backdrop-filter:blur(8px);z-index:150;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--bg2);border:0.5px solid var(--border2);border-radius:8px;
+  width:100%;max-width:560px;max-height:85vh;overflow-y:auto;
+  transform:translateY(12px);transition:transform 0.25s;
+}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-header{
+  padding:24px 24px 20px;border-bottom:0.5px solid var(--border);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  position:sticky;top:0;background:var(--bg2);z-index:1;
+}
+.modal-title-group{}
+.modal-icon{font-size:28px;margin-bottom:8px;}
+.modal-title{
+  font-family:var(--serif);font-size:20px;font-weight:400;color:#fff;
+  margin-bottom:4px;
+}
+.modal-meta{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.06em;}
+.modal-close{
+  background:none;border:0.5px solid var(--border);border-radius:3px;
+  color:var(--text3);padding:6px 10px;cursor:pointer;font-size:14px;
+  transition:all 0.2s;flex-shrink:0;
+}
+.modal-close:hover{color:var(--text);border-color:var(--border2);}
+
+.modal-body{padding:24px;}
+
+/* Belt tabs in modal */
+.belt-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px;}
+.belt-tab{
+  font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:20px;
+  border:0.5px solid var(--border);color:var(--text3);background:none;
+  cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;text-transform:uppercase;
+}
+.belt-tab.active{color:#09090e;border-color:transparent;}
+.belt-tab.locked-tab{opacity:0.35;cursor:not-allowed;}
+
+/* Activity cards in modal */
+.activity-list{display:flex;flex-direction:column;gap:8px;}
+.activity-card{
+  background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+  cursor:pointer;transition:all 0.2s;text-decoration:none;
+}
+.activity-card:hover{border-color:var(--border2);transform:translateX(3px);}
+.activity-card.disabled{opacity:0.35;cursor:not-allowed;pointer-events:none;}
+.act-icon-wrap{
+  width:38px;height:38px;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.act-info{flex:1;}
+.act-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.act-desc{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.act-xp{
+  font-family:var(--mono);font-size:10px;color:var(--gold);
+  border:0.5px solid rgba(201,169,110,0.2);border-radius:2px;padding:2px 7px;
+  white-space:nowrap;
+}
+
+/* Belt progress in modal */
+.belt-progress-section{margin-top:20px;}
+.belt-progress-title{
+  font-family:var(--mono);font-size:10px;color:var(--text3);
+  letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;
+}
+.belt-progress-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;border-bottom:0.5px solid var(--border);
+}
+.belt-progress-row:last-child{border-bottom:none;}
+.belt-pip-wrap{display:flex;align-items:center;gap:8px;flex:1;}
+.belt-pip-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.belt-pip-name{font-size:12px;color:var(--text2);}
+.belt-pip-status{font-family:var(--mono);font-size:10px;}
+.belt-pip-status.passed{color:var(--teal);}
+.belt-pip-status.current{color:var(--gold);}
+.belt-pip-status.locked{color:var(--text3);}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:600px){
+  .page{padding:0 16px 80px;}
+  nav{padding:14px 16px;}
+  .chapters-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading-screen">
+  <div class="loading-emblem">⚡</div>
+  <div class="loading-text">Loading your dojo...</div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-logo" href="/physics/app.html">
+    Physics <em>Black Belt</em>
+    <div class="belt-pip">
+      <span style="background:#e8e6e0;"></span>
+      <span style="background:#f5c842;"></span>
+      <span style="background:#f5852a;"></span>
+      <span style="background:#4a90d9;"></span>
+      <span style="background:#8B5E3C;"></span>
+      <span style="background:#333;"></span>
+    </div>
+  </a>
+  <div class="nav-right">
+    <div class="nav-user">Logged in as <span id="nav-email">—</span></div>
+    <button class="nav-signout" onclick="signOut()">Sign out</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Hero strip -->
+  <div class="hero-strip">
+    <div class="hero-strip-top">
+      <div>
+        <div class="hero-greeting">Welcome back, <em id="greeting-name">Physicist</em></div>
+        <div class="hero-sub">Your training continues — pick a chapter to begin</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-chip">
+        <div class="stat-chip-num" id="stat-xp">0</div>
+        <div class="stat-chip-label">Total XP</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-num" id="stat-chapters">0</div>
+        <div class="stat-chip-label">Chapters Unlocked</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-num" id="stat-belts">0</div>
+        <div class="stat-chip-label">Belts Earned</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-num" id="stat-highest">—</div>
+        <div class="stat-chip-label">Highest Belt</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Belt legend -->
+  <div class="belt-legend">
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#e8e6e0;"></div>White — Recognition</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#f5c842;"></div>Yellow — Understanding</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#f5852a;"></div>Orange — Application</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#4a90d9;"></div>Blue — Analysis</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#8B5E3C;"></div>Brown — Synthesis</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#555;border:0.5px solid #888;"></div>Black — Mastery</div>
+  </div>
+
+  <!-- Grade 11 chapters -->
+  <div class="chapters-section">
+    <div class="section-header">
+      <span class="section-label">Grade 11 — SHS STEM Physics</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="chapters-grid" id="grid-g11"></div>
+
+    <div class="section-header" style="margin-top:32px;">
+      <span class="section-label">Grade 12 — SHS STEM Physics</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="chapters-grid" id="grid-g12"></div>
+  </div>
+
+</div>
+
+<!-- Chapter detail modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <div class="modal-icon" id="modal-icon">📚</div>
+        <div class="modal-title" id="modal-title">Chapter</div>
+        <div class="modal-meta" id="modal-meta">Grade 11 · Quarter 1</div>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Belt tabs -->
+      <div class="belt-tabs" id="modal-belt-tabs"></div>
+
+      <!-- Activities -->
+      <div class="activity-list" id="modal-activities"></div>
+
+      <!-- Belt progress -->
+      <div class="belt-progress-section">
+        <div class="belt-progress-title">Belt Progress in this chapter</div>
+        <div id="modal-belt-progress"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+
+// ── INIT ──
+const SUPABASE_URL = 'https://vmhfkqqsrokkehkejxdk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtaGZrcXFzcm9ra2Voa2VqeGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE0MzYsImV4cCI6MjA5MjY5NzQzNn0.6EDkxTi675qEEiz12PzgYty1MmbJdIW2s86PcH2vB0U';
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const BELTS = [
+  { id:'white',  label:'White',  color:'#e8e6e0', goal:'Recognition' },
+  { id:'yellow', label:'Yellow', color:'#f5c842', goal:'Understanding' },
+  { id:'orange', label:'Orange', color:'#f5852a', goal:'Application' },
+  { id:'blue',   label:'Blue',   color:'#4a90d9', goal:'Analysis' },
+  { id:'brown',  label:'Brown',  color:'#8B5E3C', goal:'Synthesis' },
+  { id:'black',  label:'Black',  color:'#555',    goal:'Mastery' },
+];
+
+const CHAPTER_ICONS = {
+  'g11-q1-kinematics':'🏃',
+  'g11-q2-dynamics':'💪',
+  'g11-q3-energy':'⚡',
+  'g11-q3-waves':'〰️',
+  'g11-q4-thermo':'🌡️',
+  'g12-q1-em':'🔌',
+  'g12-q2-optics':'💡',
+  'g12-q3-modern':'⚛️',
+};
+
+let currentUser = null;
+let currentProfile = null;
+let chapters = [];
+let progress = [];
+let currentChapter = null;
+let currentBelt = 'white';
+
+// ── AUTH CHECK ──
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = '/physics/login.html';
+    return;
+  }
+  currentUser = session.user;
+
+  // Handle magic link token in URL hash — clean it up
+  if (window.location.hash.includes('access_token')) {
+    history.replaceState(null, '', window.location.pathname);
+  }
+
+  await loadProfile();
+  await loadChapters();
+  await loadProgress();
+  renderDashboard();
+  hideLoading();
+}
+
+async function loadProfile() {
+  const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  currentProfile = data;
+  const email = currentUser.email || '';
+  document.getElementById('nav-email').textContent = email;
+  const name = email.split('@')[0].replace(/[._]/g,' ');
+  document.getElementById('greeting-name').textContent = capitalize(name);
+
+  // If teacher, show admin link
+  if (currentProfile && currentProfile.role === 'teacher') {
+    const navRight = document.querySelector('.nav-right');
+    const adminLink = document.createElement('a');
+    adminLink.href = '/physics/admin.html';
+    adminLink.style.cssText = 'font-family:var(--mono);font-size:11px;color:var(--teal);text-decoration:none;letter-spacing:0.04em;border:0.5px solid rgba(45,212,160,0.2);border-radius:3px;padding:5px 12px;transition:all 0.2s;';
+    adminLink.textContent = '⚙ Admin';
+    navRight.insertBefore(adminLink, navRight.firstChild);
+  }
+}
+
+async function loadChapters() {
+  const { data } = await sb.from('chapters').select('*').order('sort_order');
+  chapters = data || [];
+}
+
+async function loadProgress() {
+  const { data } = await sb.from('progress').select('*').eq('student_id', currentUser.id);
+  progress = data || [];
+}
+
+function getProgress(chapterId, belt) {
+  return progress.find(p => p.chapter_id === chapterId && p.belt === belt) || null;
+}
+
+function getChapterBeltStatus(chapterId) {
+  // Returns the highest belt passed for a chapter
+  for (let i = BELTS.length - 1; i >= 0; i--) {
+    const p = getProgress(chapterId, BELTS[i].id);
+    if (p && p.passed) return BELTS[i];
+  }
+  return null;
+}
+
+function getTotalXP() {
+  return progress.reduce((sum, p) => sum + (p.best_score || 0), 0);
+}
+
+function getTotalBeltsEarned() {
+  return progress.filter(p => p.passed).length;
+}
+
+function getHighestBelt() {
+  for (let i = BELTS.length - 1; i >= 0; i--) {
+    if (progress.some(p => p.belt === BELTS[i].id && p.passed)) return BELTS[i].label;
+  }
+  return 'None yet';
+}
+
+// ── RENDER ──
+function renderDashboard() {
+  // Stats
+  const unlocked = chapters.filter(c => !c.is_locked).length;
+  document.getElementById('stat-xp').textContent = Math.round(getTotalXP());
+  document.getElementById('stat-chapters').textContent = unlocked;
+  document.getElementById('stat-belts').textContent = getTotalBeltsEarned();
+  document.getElementById('stat-highest').textContent = getHighestBelt();
+
+  // Chapter grids
+  const g11 = chapters.filter(c => c.grade === 11);
+  const g12 = chapters.filter(c => c.grade === 12);
+  document.getElementById('grid-g11').innerHTML = g11.map(renderChapterCard).join('');
+  document.getElementById('grid-g12').innerHTML = g12.map(renderChapterCard).join('');
+}
+
+function renderChapterCard(ch) {
+  const locked = ch.is_locked;
+  const icon = CHAPTER_ICONS[ch.id] || '📖';
+  const highestBelt = getChapterBeltStatus(ch.id);
+
+  // Belt dots
+  const dots = BELTS.map((b, i) => {
+    const p = getProgress(ch.id, b.id);
+    const earned = p && p.passed;
+    const isCurrent = !earned && !locked && (i === 0 || (getProgress(ch.id, BELTS[i-1].id)?.passed));
+    return `<div class="belt-dot ${earned ? 'earned' : ''} ${isCurrent ? 'current' : ''}"
+      style="${earned ? `background:${b.color};` : `border-color:rgba(255,255,255,0.08);`}"></div>`;
+  }).join('');
+
+  const currentBeltLabel = highestBelt
+    ? `${highestBelt.label} Belt`
+    : locked ? 'Locked' : 'Start White Belt';
+
+  return `
+    <div class="chapter-card ${locked ? 'locked' : ''}"
+      onclick="${locked ? '' : `openChapter('${ch.id}')`}">
+      <div class="chapter-top">
+        <div class="chapter-icon">${icon}</div>
+        <div class="chapter-quarter">Q${ch.quarter}</div>
+      </div>
+      <div>
+        <div class="chapter-title">${ch.title}</div>
+        <div class="chapter-desc">${ch.deped_code || ''}</div>
+      </div>
+      <div class="belt-track">
+        <div class="belt-track-row">
+          <div class="belt-dots">${dots}</div>
+        </div>
+        <div class="belt-current-label">${currentBeltLabel}</div>
+      </div>
+      ${!locked ? `
+      <div class="chapter-cta">
+        <span class="cta-small cta-gold">Train →</span>
+      </div>` : ''}
+    </div>`;
+}
+
+// ── MODAL ──
+function openChapter(chapterId) {
+  currentChapter = chapters.find(c => c.id === chapterId);
+  if (!currentChapter) return;
+  currentBelt = 'white';
+
+  const icon = CHAPTER_ICONS[chapterId] || '📖';
+  document.getElementById('modal-icon').textContent = icon;
+  document.getElementById('modal-title').textContent = currentChapter.title;
+  document.getElementById('modal-meta').textContent =
+    `Grade ${currentChapter.grade} · Quarter ${currentChapter.quarter} · ${currentChapter.deped_code || ''}`;
+
+  renderModalBeltTabs();
+  renderModalActivities();
+  renderModalBeltProgress();
+
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderModalBeltTabs() {
+  const tabs = BELTS.map((b, i) => {
+    const p = getProgress(currentChapter.id, b.id);
+    const prevPassed = i === 0 || getProgress(currentChapter.id, BELTS[i-1].id)?.passed;
+    const isLocked = !prevPassed && i > 0;
+    const isActive = b.id === currentBelt;
+    return `<button
+      class="belt-tab ${isActive ? 'active' : ''} ${isLocked ? 'locked-tab' : ''}"
+      style="${isActive ? `background:${b.color};` : ''}"
+      onclick="${isLocked ? '' : `selectBelt('${b.id}')`}"
+      title="${isLocked ? 'Complete previous belt to unlock' : b.goal}"
+    >${b.label}</button>`;
+  }).join('');
+  document.getElementById('modal-belt-tabs').innerHTML = tabs;
+}
+
+function selectBelt(beltId) {
+  currentBelt = beltId;
+  renderModalBeltTabs();
+  renderModalActivities();
+}
+
+function renderModalActivities() {
+  const belt = BELTS.find(b => b.id === currentBelt);
+  const p = getProgress(currentChapter.id, currentBelt);
+  const attempts = p ? p.attempts : 0;
+  const bestScore = p ? Math.round(p.best_score) : 0;
+  const passed = p ? p.passed : false;
+
+  const activities = [
+    {
+      icon:'📝',
+      bg:'rgba(201,169,110,0.08)',
+      title: currentBelt === 'black' ? 'Mastery Challenge' : 'Multiple Choice Quiz',
+      desc: currentBelt === 'black'
+        ? 'Timed · Numeric answers only · No hints'
+        : `20 questions · Concept & recall · ${attempts} attempt${attempts !== 1 ? 's' : ''} · Best: ${bestScore}%`,
+      xp: currentBelt === 'black' ? '50 XP' : '5 XP each',
+      href: `quiz.html?chapter=${currentChapter.id}&belt=${currentBelt}`,
+      disabled: false,
+    },
+    {
+      icon:'🧮',
+      bg:'rgba(45,212,160,0.06)',
+      title:'Problem Solving',
+      desc:`Step-by-step worked problems · Hints available · Show your work`,
+      xp:'15 XP each',
+      href:`problems.html?chapter=${currentChapter.id}&belt=${currentBelt}`,
+      disabled: currentBelt === 'white', // White belt is concept only, no calc
+    },
+    {
+      icon:'🔬',
+      bg:'rgba(74,144,217,0.08)',
+      title:'Physics Simulation',
+      desc:`Interactive virtual lab · Adjust variables · Predict & observe`,
+      xp:'10 XP',
+      href:`sim.html?chapter=${currentChapter.id}`,
+      disabled: false,
+    },
+  ];
+
+  document.getElementById('modal-activities').innerHTML = activities.map(a => `
+    <div class="activity-card ${a.disabled ? 'disabled' : ''}"
+      onclick="${a.disabled ? '' : `window.location.href='${a.href}'`}">
+      <div class="act-icon-wrap" style="background:${a.bg};">${a.icon}</div>
+      <div class="act-info">
+        <div class="act-title">${a.title}</div>
+        <div class="act-desc">${a.desc}</div>
+      </div>
+      <div class="act-xp">${a.xp}</div>
+    </div>`).join('');
+}
+
+function renderModalBeltProgress() {
+  const rows = BELTS.map((b, i) => {
+    const p = getProgress(currentChapter.id, b.id);
+    const passed = p && p.passed;
+    const attempts = p ? p.attempts : 0;
+    const prevPassed = i === 0 || getProgress(currentChapter.id, BELTS[i-1].id)?.passed;
+    const unlocked = i === 0 || prevPassed;
+
+    let statusText, statusClass;
+    if (passed) { statusText = '✓ Passed'; statusClass = 'passed'; }
+    else if (unlocked && attempts > 0) { statusText = `${attempts} attempt${attempts !== 1 ? 's' : ''}`; statusClass = 'current'; }
+    else if (unlocked) { statusText = 'Not started'; statusClass = 'current'; }
+    else { statusText = 'Locked'; statusClass = 'locked'; }
+
+    return `<div class="belt-progress-row">
+      <div class="belt-pip-wrap">
+        <div class="belt-pip-dot" style="background:${unlocked ? b.color : 'rgba(255,255,255,0.08)'};"></div>
+        <div class="belt-pip-name">${b.label} Belt — <span style="color:var(--text3);font-size:11px;">${b.goal}</span></div>
+      </div>
+      <div class="belt-pip-status ${statusClass}">${statusText}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('modal-belt-progress').innerHTML = rows;
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
+}
+
+function closeModalDirect() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function hideLoading() {
+  const el = document.getElementById('loading-screen');
+  el.classList.add('hidden');
+  setTimeout(() => el.style.display = 'none', 400);
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = '/physics/login.html';
+}
+
+function capitalize(str) {
+  return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+// ── START ──
+init();
+</script>
+</body>
+</html>
