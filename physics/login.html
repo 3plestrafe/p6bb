@@ -211,21 +211,13 @@ body::before{
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="/physics/js/supabase.js"></script>
 <script>
 
-// If already logged in, redirect to app
-(async () => {
-  const session = await getSession();
-  if (session) window.location.href = '/physics/app.html';
-})();
-
-// Handle auth state changes (magic link callback)
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) {
-    window.location.href = '/physics/app.html';
-  }
-});
+// Initialize Supabase BEFORE anything else
+const SUPABASE_URL = 'https://vmhfkqqsrokkehkejxdk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtaGZrcXFzcm9ra2Voa2VqeGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE0MzYsImV4cCI6MjA5MjY5NzQzNn0.6EDkxTi675qEEiz12PzgYty1MmbJdIW2s86PcH2vB0U';
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function showMsg(text, type) {
   const box = document.getElementById('msg-box');
@@ -247,7 +239,6 @@ async function sendMagicLink() {
     return;
   }
 
-  // Basic email format check
   if (!email.includes('@')) {
     showMsg('Please enter a valid email address.', 'error');
     return;
@@ -275,7 +266,7 @@ async function sendMagicLink() {
   const { error } = await sb.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: 'https://bryanvincentking.com/physics/app.html'
+      emailRedirectTo: 'https://physicsblackbelt.netlify.app/physics/app.html'
     }
   });
 
@@ -300,6 +291,19 @@ function resetForm() {
   document.getElementById('submit-btn').textContent = 'Send Login Link';
   hideMsg();
 }
+
+// Check if already logged in
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) window.location.href = '/physics/app.html';
+})();
+
+// Handle auth state changes (magic link callback)
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    window.location.href = '/physics/app.html';
+  }
+});
 
 // Allow Enter key to submit
 document.getElementById('email-input').addEventListener('keydown', (e) => {
