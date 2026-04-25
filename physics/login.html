@@ -25,7 +25,6 @@ body{
   background:var(--bg);color:var(--text);font-family:var(--sans);
   font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
   display:flex;align-items:center;justify-content:center;min-height:100vh;
-  overflow:hidden;
 }
 body::after{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -37,279 +36,124 @@ body::before{
   width:700px;height:500px;border-radius:50%;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse,rgba(201,169,110,0.06) 0%,transparent 70%);
 }
-
 .login-wrap{
   position:relative;z-index:1;
   width:100%;max-width:420px;padding:0 20px;
   opacity:0;animation:rise 0.6s 0.1s forwards;
 }
-
-/* Belt stripe decoration */
-.belt-stripes{
-  display:flex;height:4px;border-radius:2px;overflow:hidden;margin-bottom:32px;
-}
+.belt-stripes{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-bottom:32px;}
 .belt-stripes span{flex:1;}
-
-.emblem{
-  text-align:center;margin-bottom:32px;
-}
+.emblem{text-align:center;margin-bottom:32px;}
 .emblem-icon{
   width:64px;height:64px;border-radius:50%;
-  background:rgba(201,169,110,0.08);
-  border:0.5px solid rgba(201,169,110,0.2);
+  background:rgba(201,169,110,0.08);border:0.5px solid rgba(201,169,110,0.2);
   display:flex;align-items:center;justify-content:center;
   margin:0 auto 16px;font-size:28px;
 }
-.emblem h1{
-  font-family:var(--serif);font-size:26px;font-weight:400;
-  color:#fff;letter-spacing:-0.01em;margin-bottom:4px;
-}
+.emblem h1{font-family:var(--serif);font-size:26px;font-weight:400;color:#fff;letter-spacing:-0.01em;margin-bottom:4px;}
 .emblem h1 em{font-style:italic;color:var(--gold);}
 .emblem p{font-size:12px;color:var(--text3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;}
-
-.card{
-  background:var(--bg2);border:0.5px solid var(--border);
-  border-radius:6px;padding:32px;
-}
-
-.card-title{
-  font-family:var(--mono);font-size:11px;letter-spacing:0.1em;
-  text-transform:uppercase;color:var(--text3);margin-bottom:20px;
-}
-
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:6px;padding:32px;}
+.card-title{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:20px;}
 .form-group{margin-bottom:16px;}
-.form-group label{
-  display:block;font-size:11px;color:var(--text3);
-  font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;
-  margin-bottom:7px;
-}
-.form-group input{
-  width:100%;background:var(--bg3);border:0.5px solid var(--border2);
-  border-radius:4px;padding:11px 14px;color:var(--text);
-  font-family:var(--sans);font-size:14px;outline:none;
-  transition:border-color 0.2s;
-}
+.form-group label{display:block;font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px;}
+.form-group input{width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:4px;padding:11px 14px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color 0.2s;}
 .form-group input:focus{border-color:rgba(201,169,110,0.4);}
 .form-group input::placeholder{color:var(--text3);}
-
-.btn-submit{
-  width:100%;background:var(--gold);color:#09090e;border:none;
-  border-radius:4px;padding:13px;font-size:13px;font-weight:500;
-  font-family:var(--sans);letter-spacing:0.05em;text-transform:uppercase;
-  cursor:pointer;transition:background 0.2s,transform 0.15s;margin-top:4px;
-}
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:40px;}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px;line-height:1;}
+.btn-submit{width:100%;background:var(--gold);color:#09090e;border:none;border-radius:4px;padding:13px;font-size:13px;font-weight:500;font-family:var(--sans);letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:background 0.2s,transform 0.15s;margin-top:4px;}
 .btn-submit:hover{background:var(--gold2);transform:translateY(-1px);}
 .btn-submit:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-
-.divider{
-  display:flex;align-items:center;gap:12px;margin:20px 0;
-}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
 .divider span{font-size:11px;color:var(--text3);font-family:var(--mono);}
 .divider::before,.divider::after{content:'';flex:1;height:0.5px;background:var(--border);}
-
-.msg{
-  border-radius:4px;padding:11px 14px;font-size:13px;
-  font-family:var(--mono);margin-bottom:16px;display:none;
-}
+.msg{border-radius:4px;padding:11px 14px;font-size:13px;font-family:var(--mono);margin-bottom:16px;display:none;line-height:1.5;}
 .msg.success{background:var(--teal-dim);color:var(--teal);border:0.5px solid rgba(45,212,160,0.2);}
 .msg.error{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(224,85,85,0.2);}
 .msg.show{display:block;}
-
-.back-link{
-  display:block;text-align:center;margin-top:20px;
-  font-size:11px;color:var(--text3);font-family:var(--mono);
-  text-decoration:none;transition:color 0.2s;letter-spacing:0.04em;
-}
+.back-link{display:block;text-align:center;margin-top:20px;font-size:11px;color:var(--text3);font-family:var(--mono);text-decoration:none;transition:color 0.2s;letter-spacing:0.04em;}
 .back-link:hover{color:var(--text2);}
-
-/* Sent state */
-.sent-state{display:none;text-align:center;padding:8px 0;}
-.sent-state.show{display:block;}
-.sent-icon{font-size:36px;margin-bottom:12px;}
-.sent-state h3{font-family:var(--serif);font-size:20px;color:#fff;margin-bottom:8px;}
-.sent-state p{font-size:13px;color:var(--text2);line-height:1.7;font-weight:300;}
-.sent-state .email-highlight{color:var(--gold);font-family:var(--mono);font-size:12px;}
-
-.form-state{}
-
 @keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 </style>
 </head>
 <body>
-
 <div class="login-wrap">
-
-  <!-- Belt color stripes -->
   <div class="belt-stripes">
-    <span style="background:#f0f0f0;"></span>
+    <span style="background:#e8e6e0;"></span>
     <span style="background:#f5c842;"></span>
     <span style="background:#f5852a;"></span>
     <span style="background:#4a90d9;"></span>
-    <span style="background:#8B4513;"></span>
-    <span style="background:#1a1a1a;"></span>
+    <span style="background:#8B5E3C;"></span>
+    <span style="background:#333;"></span>
   </div>
-
   <div class="emblem">
     <div class="emblem-icon">⚡</div>
     <h1>Physics <em>Black Belt</em></h1>
     <p>bryanvincentking.com · K–12 Physics Mastery</p>
   </div>
-
   <div class="card">
     <div class="card-title">Student & Teacher Access</div>
-
     <div id="msg-box" class="msg"></div>
-
-    <!-- Form state -->
-    <div class="form-state" id="form-state">
-      <div class="form-group">
-        <label>School Email Address</label>
-        <input
-          type="email"
-          id="email-input"
-          placeholder="yourname@school.edu.ph"
-          autocomplete="email"
-        />
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="email-input" placeholder="yourname@school.edu.ph" autocomplete="email"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="password-input" placeholder="Enter your password" autocomplete="current-password"/>
+        <button class="pw-toggle" onclick="togglePw()" type="button">👁</button>
       </div>
-
-      <button class="btn-submit" id="submit-btn" onclick="sendMagicLink()">
-        Send Login Link
-      </button>
-
-      <div class="divider"><span>how it works</span></div>
-
-      <p style="font-size:12px;color:var(--text3);font-family:var(--mono);line-height:1.7;text-align:center;">
-        Enter your school email. We'll send a one-click login link — no password needed.
-        Only whitelisted school emails can access this platform.
-      </p>
     </div>
-
-    <!-- Sent state -->
-    <div class="sent-state" id="sent-state">
-      <div class="sent-icon">📬</div>
-      <h3>Check your email</h3>
-      <p>
-        A login link has been sent to<br>
-        <span class="email-highlight" id="sent-email"></span>
-      </p>
-      <p style="margin-top:12px;font-size:12px;">
-        Click the link in your email to access Physics Black Belt.
-        The link expires in 1 hour.
-      </p>
-      <button
-        onclick="resetForm()"
-        style="margin-top:20px;background:none;border:0.5px solid var(--border2);color:var(--text2);padding:9px 20px;border-radius:4px;font-family:var(--mono);font-size:11px;cursor:pointer;letter-spacing:0.04em;"
-      >
-        ← Use different email
-      </button>
-    </div>
-
+    <button class="btn-submit" id="submit-btn" onclick="doLogin()">Sign In →</button>
+    <div class="divider"><span>need access?</span></div>
+    <p style="font-size:12px;color:var(--text3);font-family:var(--mono);line-height:1.7;text-align:center;">
+      Your teacher will give you your login credentials.<br>
+      Contact your teacher if you cannot access your account.
+    </p>
   </div>
-
   <a class="back-link" href="/index.html">← Back to bryanvincentking.com</a>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-
-// Initialize Supabase BEFORE anything else
 const SUPABASE_URL = 'https://vmhfkqqsrokkehkejxdk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtaGZrcXFzcm9ra2Voa2VqeGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE0MzYsImV4cCI6MjA5MjY5NzQzNn0.6EDkxTi675qEEiz12PzgYty1MmbJdIW2s86PcH2vB0U';
 const { createClient } = window.supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function showMsg(text, type) {
-  const box = document.getElementById('msg-box');
-  box.textContent = text;
-  box.className = 'msg ' + type + ' show';
+function showMsg(t, type) {
+  const b = document.getElementById('msg-box');
+  b.textContent = t; b.className = 'msg ' + type + ' show';
 }
 
-function hideMsg() {
-  const box = document.getElementById('msg-box');
-  box.className = 'msg';
+function togglePw() {
+  const i = document.getElementById('password-input');
+  i.type = i.type === 'password' ? 'text' : 'password';
 }
 
-async function sendMagicLink() {
+async function doLogin() {
   const email = document.getElementById('email-input').value.trim().toLowerCase();
+  const password = document.getElementById('password-input').value;
   const btn = document.getElementById('submit-btn');
-
-  if (!email) {
-    showMsg('Please enter your school email address.', 'error');
-    return;
-  }
-
-  if (!email.includes('@')) {
-    showMsg('Please enter a valid email address.', 'error');
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Sending...';
-  hideMsg();
-
-  // Check whitelist first
-  const { data: whitelist, error: wErr } = await sb
-    .from('email_whitelist')
-    .select('email')
-    .eq('email', email)
-    .single();
-
-  if (wErr || !whitelist) {
-    showMsg('This email is not on the access list. Contact your teacher to be added.', 'error');
-    btn.disabled = false;
-    btn.textContent = 'Send Login Link';
-    return;
-  }
-
-  // Send magic link
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: 'https://physicsblackbelt.netlify.app/physics/app.html'
-    }
-  });
-
+  if (!email || !password) { showMsg('Please enter both email and password.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) {
-    showMsg('Something went wrong: ' + error.message, 'error');
-    btn.disabled = false;
-    btn.textContent = 'Send Login Link';
-    return;
+    showMsg('Incorrect email or password. Contact your teacher if you need help.', 'error');
+    btn.disabled = false; btn.textContent = 'Sign In →'; return;
   }
-
-  // Show sent state
-  document.getElementById('sent-email').textContent = email;
-  document.getElementById('form-state').style.display = 'none';
-  document.getElementById('sent-state').classList.add('show');
+  window.location.href = 'app.html';
 }
 
-function resetForm() {
-  document.getElementById('form-state').style.display = 'block';
-  document.getElementById('sent-state').classList.remove('show');
-  document.getElementById('email-input').value = '';
-  document.getElementById('submit-btn').disabled = false;
-  document.getElementById('submit-btn').textContent = 'Send Login Link';
-  hideMsg();
-}
-
-// Check if already logged in
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
-  if (session) window.location.href = '/physics/app.html';
+  if (session) window.location.href = 'app.html';
 })();
 
-// Handle auth state changes (magic link callback)
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) {
-    window.location.href = '/physics/app.html';
-  }
-});
-
-// Allow Enter key to submit
-document.getElementById('email-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') sendMagicLink();
-});
-
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 </script>
 </body>
 </html>
