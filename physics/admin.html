@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Physics Black Belt — Admin</title>
+<link rel="stylesheet" href="css/app.css"/>
+<style>
+body{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── ADMIN LAYOUT ── */
+.admin-layout{
+  display:flex;flex:1;position:relative;z-index:1;
+  min-height:calc(100vh - 49px);
+}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  padding:24px 0;
+  position:sticky;top:49px;
+  height:calc(100vh - 49px);
+  overflow-y:auto;
+}
+.sidebar-label{
+  font-family:var(--font-display);font-size:8px;font-weight:600;
+  letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);
+  padding:0 20px;margin-bottom:8px;
+}
+.sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px;margin-bottom:24px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:4px;cursor:pointer;
+  font-size:13px;color:var(--text2);transition:all 0.15s;
+  border:none;background:none;text-align:left;width:100%;
+  font-family:var(--font-body);
+}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--gold-dim);color:var(--gold);}
+.nav-item .nav-icon{font-size:15px;width:20px;text-align:center;}
+.nav-item .nav-badge{
+  margin-left:auto;font-family:var(--font-mono);font-size:10px;
+  background:var(--bg3);color:var(--text3);
+  padding:1px 6px;border-radius:10px;
+}
+
+.sidebar-divider{height:1px;background:var(--border);margin:8px 20px 16px;}
+
+.sidebar-footer{
+  padding:16px 20px 0;margin-top:auto;
+  font-family:var(--font-mono);font-size:10px;color:var(--text3);
+  line-height:1.6;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content{
+  flex:1;padding:32px;overflow-y:auto;
+  max-width:900px;
+}
+
+.section-page{display:none;}
+.section-page.active{display:block;}
+
+.page-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;flex-wrap:wrap;gap:12px;
+}
+.page-header-left h2{
+  font-family:var(--font-display);font-size:16px;font-weight:700;
+  color:var(--text);letter-spacing:0.03em;margin-bottom:4px;
+}
+.page-header-left p{font-size:12px;color:var(--text3);font-family:var(--font-mono);}
+
+/* ── TABLES ── */
+.table-wrap{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;overflow:hidden;margin-bottom:20px;
+}
+.admin-table{width:100%;border-collapse:collapse;font-size:13px;}
+.admin-table th{
+  font-family:var(--font-display);font-size:8px;font-weight:600;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  text-align:left;background:var(--bg3);
+}
+.admin-table td{
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  color:var(--text2);vertical-align:middle;
+}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-table tr:hover td{background:var(--bg3);}
+.admin-table tr{cursor:pointer;}
+
+/* Toggle */
+.toggle{
+  position:relative;width:36px;height:20px;flex-shrink:0;
+}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{
+  position:absolute;inset:0;background:var(--bg4);
+  border-radius:20px;cursor:pointer;transition:0.2s;
+  border:1px solid var(--border2);
+}
+.toggle-slider::before{
+  content:'';position:absolute;width:14px;height:14px;
+  left:2px;top:2px;background:var(--text3);
+  border-radius:50%;transition:0.2s;
+}
+.toggle input:checked + .toggle-slider{background:var(--teal);border-color:var(--teal);}
+.toggle input:checked + .toggle-slider::before{transform:translateX(16px);background:#fff;}
+
+/* Belt dot small */
+.bdot{
+  width:9px;height:9px;border-radius:50%;display:inline-block;
+  border:1px solid rgba(255,255,255,0.1);
+}
+
+/* Status badges */
+.badge{
+  font-family:var(--font-mono);font-size:10px;
+  padding:2px 8px;border-radius:3px;letter-spacing:0.04em;
+}
+.badge-green{background:rgba(45,212,160,0.1);color:var(--teal);border:1px solid rgba(45,212,160,0.2);}
+.badge-grey{background:var(--bg3);color:var(--text3);border:1px solid var(--border);}
+.badge-gold{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,169,110,0.2);}
+
+/* ── MATRIX VIEW ── */
+.matrix-wrap{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;overflow-x:auto;margin-bottom:20px;
+}
+.matrix-table{border-collapse:collapse;font-size:11px;min-width:100%;}
+.matrix-table th{
+  font-family:var(--font-mono);font-size:9px;color:var(--text3);
+  padding:8px 10px;border-bottom:1px solid var(--border);
+  border-right:1px solid var(--border);
+  background:var(--bg3);text-align:center;white-space:nowrap;
+}
+.matrix-table th.student-col{text-align:left;min-width:160px;position:sticky;left:0;z-index:2;}
+.matrix-table td{
+  padding:8px 10px;border-bottom:1px solid var(--border);
+  border-right:1px solid var(--border);text-align:center;
+  color:var(--text2);
+}
+.matrix-table td.student-name{
+  text-align:left;font-size:12px;color:var(--text);
+  position:sticky;left:0;background:var(--bg2);z-index:1;
+  white-space:nowrap;
+}
+.matrix-table tr:last-child td{border-bottom:none;}
+.matrix-belt-dots{display:flex;gap:2px;justify-content:center;}
+
+/* ── QUESTION FORM ── */
+.q-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.q-tab{
+  flex:1;padding:9px;font-family:var(--font-display);font-size:9px;
+  font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+  background:none;border:none;color:var(--text3);cursor:pointer;
+  transition:all 0.15s;text-align:center;
+}
+.q-tab.active{background:var(--gold);color:#111318;}
+.q-tab:not(.active):hover{background:var(--bg3);color:var(--text2);}
+
+.json-area{
+  width:100%;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:4px;padding:14px;color:var(--text);
+  font-family:var(--font-mono);font-size:12px;line-height:1.6;
+  min-height:200px;outline:none;resize:vertical;
+  transition:border-color 0.15s;
+}
+.json-area:focus{border-color:var(--gold);}
+.json-validate{
+  display:flex;align-items:center;gap:8px;margin-top:8px;
+  font-family:var(--font-mono);font-size:11px;color:var(--text3);
+}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.8);
+  backdrop-filter:blur(6px);z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity 0.2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:8px;width:100%;max-width:500px;
+  max-height:88vh;overflow-y:auto;
+  transform:translateY(8px);transition:transform 0.2s;
+}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-hd{
+  padding:20px 24px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-hd h3{
+  font-family:var(--font-display);font-size:13px;font-weight:700;
+  color:var(--text);letter-spacing:0.04em;
+}
+.modal-hd button{
+  background:none;border:1px solid var(--border);border-radius:3px;
+  color:var(--text3);padding:5px 9px;cursor:pointer;transition:all 0.15s;
+}
+.modal-hd button:hover{color:var(--text);border-color:var(--border2);}
+.modal-bd{padding:24px;}
+.modal-ft{
+  padding:16px 24px;border-top:1px solid var(--border);
+  display:flex;gap:8px;justify-content:flex-end;
+}
+
+/* ── PROGRESS STATS ── */
+.progress-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:24px;}
+.progress-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:16px;
+}
+.progress-card-num{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--gold);margin-bottom:4px;}
+.progress-card-label{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;}
+
+@media(max-width:700px){
+  .sidebar{width:180px;}
+  .main-content{padding:20px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading-screen" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:300;">
+  <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--gold);letter-spacing:0.1em;animation:pulse 1.5s infinite;">⚡ LOADING ADMIN...</div>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
+  <div class="nav-right">
+    <div class="nav-user">Admin: <span id="nav-email">—</span></div>
+    <a class="nav-btn" href="app.html">← Student View</a>
+    <button class="nav-btn" onclick="signOut()">Sign out</button>
+  </div>
+</nav>
+
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-label">Navigation</div>
+    <div class="sidebar-nav">
+      <button class="nav-item active" onclick="showSection('chapters')">
+        <span class="nav-icon">📚</span> Chapters
+        <span class="nav-badge" id="badge-chapters">0</span>
+      </button>
+      <button class="nav-item" onclick="showSection('students')">
+        <span class="nav-icon">👥</span> Students
+        <span class="nav-badge" id="badge-students">0</span>
+      </button>
+      <button class="nav-item" onclick="showSection('questions')">
+        <span class="nav-icon">📝</span> Questions
+        <span class="nav-badge" id="badge-questions">0</span>
+      </button>
+      <button class="nav-item" onclick="showSection('progress')">
+        <span class="nav-icon">📊</span> Progress
+      </button>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-label">Belt Key</div>
+    <div style="padding:0 20px;display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);">
+        <span class="bdot" style="background:#f0f0f0;border-color:#f0f0f0;"></span>White
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);">
+        <span class="bdot" style="background:#f5c842;border-color:#f5c842;"></span>Yellow
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);">
+        <span class="bdot" style="background:#f5852a;border-color:#f5852a;"></span>Orange
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);">
+        <span class="bdot" style="background:#4a90d9;border-color:#4a90d9;"></span>Blue
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);">
+        <span class="bdot" style="background:#a0623a;border-color:#a0623a;"></span>Brown
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);">
+        <span class="bdot" style="background:#888;border-color:#888;"></span>Black
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      Physics Black Belt<br>Admin Panel v0.1<br>
+      <span style="color:var(--teal);">● Live</span>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+
+    <!-- ══ CHAPTERS ══ -->
+    <div class="section-page active" id="section-chapters">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Chapters</h2>
+          <p>Lock or unlock chapters per quarter. Students only see unlocked chapters.</p>
+        </div>
+        <button class="btn btn-gold" onclick="openAddChapter()">+ Add Chapter</button>
+      </div>
+
+      <!-- Chapter table -->
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Chapter</th>
+              <th>Grade</th>
+              <th>Quarter</th>
+              <th>DepEd Code</th>
+              <th>Questions</th>
+              <th>Status</th>
+              <th>Unlock</th>
+            </tr>
+          </thead>
+          <tbody id="chapters-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Progress matrix -->
+      <div class="page-header" style="margin-top:32px;">
+        <div class="page-header-left">
+          <h2>Student × Chapter Matrix</h2>
+          <p>Belt progress per student per chapter. Filled dot = belt passed.</p>
+        </div>
+      </div>
+      <div class="matrix-wrap">
+        <table class="matrix-table" id="matrix-table">
+          <thead id="matrix-head"></thead>
+          <tbody id="matrix-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ STUDENTS ══ -->
+    <div class="section-page" id="section-students">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Students</h2>
+          <p>Manage who can access Physics Black Belt. Only whitelisted emails can log in.</p>
+        </div>
+        <button class="btn btn-gold" onclick="openAddStudent()">+ Add Student</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Account Created</th>
+              <th>Whitelisted</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="students-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ QUESTIONS ══ -->
+    <div class="section-page" id="section-questions">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Question Bank</h2>
+          <p>Add questions via form or paste JSON batches from ChatGPT.</p>
+        </div>
+      </div>
+
+      <!-- Mode tabs -->
+      <div class="q-tabs">
+        <button class="q-tab active" id="qtab-form" onclick="switchQTab('form')">Form — Single Question</button>
+        <button class="q-tab" id="qtab-json" onclick="switchQTab('json')">JSON — Bulk Import</button>
+        <button class="q-tab" id="qtab-browse" onclick="switchQTab('browse')">Browse Questions</button>
+      </div>
+
+      <!-- Form tab -->
+      <div id="qpanel-form">
+        <div class="card">
+          <div class="card-title">Add Single Question</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Chapter</label>
+              <select id="q-chapter"></select>
+            </div>
+            <div class="form-group">
+              <label>Belt Level</label>
+              <select id="q-belt">
+                <option value="white">White</option>
+                <option value="yellow">Yellow</option>
+                <option value="orange">Orange</option>
+                <option value="blue">Blue</option>
+                <option value="brown">Brown</option>
+                <option value="black">Black</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Question Type</label>
+              <select id="q-type" onchange="toggleQType()">
+                <option value="mcq">Multiple Choice (MCQ)</option>
+                <option value="numeric">Numeric Answer (Black Belt)</option>
+                <option value="concept">Concept — No calculation (White Belt)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Bloom's Level</label>
+              <select id="q-bloom">
+                <option value="remember">Remember</option>
+                <option value="understand">Understand</option>
+                <option value="apply">Apply</option>
+                <option value="analyze">Analyze</option>
+                <option value="evaluate">Evaluate</option>
+                <option value="create">Create</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Question Template</label>
+            <textarea id="q-template" rows="3" class="json-area" style="min-height:70px;" placeholder="A ball is dropped from {h} m. What is the time to hit the ground? (g = 10 m/s²)"></textarea>
+          </div>
+          <div id="q-formula-section">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="form-group">
+                <label>Formula (shown as hint)</label>
+                <input type="text" id="q-formula" placeholder="t = sqrt(2h/g)"/>
+              </div>
+              <div class="form-group">
+                <label>Correct Expression</label>
+                <input type="text" id="q-correct-expr" placeholder="Math.sqrt(2*h/g)"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Parameters (JSON) — for MCQ distractors or numeric ranges</label>
+              <textarea id="q-params" rows="2" class="json-area" style="min-height:60px;" placeholder='{"h": {"min": 20, "max": 80, "step": 5}}'></textarea>
+            </div>
+            <div class="form-group" id="q-distractor-section">
+              <label>Distractor Expressions (common mistakes, comma separated)</label>
+              <input type="text" id="q-distractors" placeholder="2*h/g, sqrt(h/g), h/g"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Explanation (shown after answer)</label>
+            <textarea id="q-explanation" rows="2" class="json-area" style="min-height:60px;" placeholder="Using h = ½gt², solve for t: t = √(2h/g)..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>DepEd Code</label>
+            <input type="text" id="q-deped" placeholder="STEM_GP12KIN-Ia-12"/>
+          </div>
+          <div id="q-form-msg" class="msg"></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+            <button class="btn btn-ghost" onclick="clearQForm()">Clear</button>
+            <button class="btn btn-gold" onclick="saveQuestion()">Save Question →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- JSON tab -->
+      <div id="qpanel-json" style="display:none;">
+        <div class="card">
+          <div class="card-title">Bulk Import via JSON</div>
+          <p style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:16px;line-height:1.7;">
+            Paste a JSON array of questions generated by ChatGPT.<br>
+            Each question must follow the template format. Invalid entries will be skipped.
+          </p>
+          <textarea class="json-area" id="json-paste" rows="14" placeholder='[
+  {
+    "chapter_id": "g11-q1-kinematics",
+    "belt": "yellow",
+    "type": "mcq",
+    "template": "A car travels {d} m in {t} s. What is its speed?",
+    "formula": "v = d/t",
+    "params": {"d": {"min":50,"max":200,"step":10}, "t": {"min":2,"max":10,"step":1}},
+    "correct_expr": "d/t",
+    "distractor_exprs": ["d*t","t/d","d+t"],
+    "explanation": "Speed = distance ÷ time = {d} ÷ {t} = {answer} m/s",
+    "deped_code": "STEM_GP12KIN-Ia-12",
+    "bloom_level": "apply"
+  }
+]'></textarea>
+          <div class="json-validate" id="json-validate-msg"></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+            <button class="btn btn-ghost" onclick="validateJSON()">Validate JSON</button>
+            <button class="btn btn-gold" onclick="importJSON()">Import All →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Browse tab -->
+      <div id="qpanel-browse" style="display:none;">
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+          <select id="filter-chapter" onchange="loadQuestions()" style="background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:7px 12px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;">
+            <option value="">All chapters</option>
+          </select>
+          <select id="filter-belt" onchange="loadQuestions()" style="background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:7px 12px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;">
+            <option value="">All belts</option>
+            <option value="white">White</option>
+            <option value="yellow">Yellow</option>
+            <option value="orange">Orange</option>
+            <option value="blue">Blue</option>
+            <option value="brown">Brown</option>
+            <option value="black">Black</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Belt</th>
+                <th>Chapter</th>
+                <th>Type</th>
+                <th>Question</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="questions-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROGRESS ══ -->
+    <div class="section-page" id="section-progress">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Student Progress</h2>
+          <p>Overview of all student activity and belt achievements.</p>
+        </div>
+        <button class="btn btn-ghost" onclick="exportProgress()">↓ Export CSV</button>
+      </div>
+
+      <div class="progress-cards" id="progress-stats"></div>
+
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Chapter</th>
+              <th>Belt</th>
+              <th>Attempts</th>
+              <th>Best Score</th>
+              <th>Status</th>
+              <th>Last Active</th>
+            </tr>
+          </thead>
+          <tbody id="progress-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Add/Edit Chapter Modal -->
+<div class="modal-overlay" id="chapter-modal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h3 id="chapter-modal-title">Edit Chapter</h3>
+      <button onclick="closeModal('chapter-modal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="form-group">
+        <label>Chapter ID (no spaces)</label>
+        <input type="text" id="cm-id" placeholder="g11-q1-kinematics"/>
+      </div>
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="cm-title" placeholder="Kinematics"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Grade</label>
+          <select id="cm-grade">
+            <option value="11">Grade 11</option>
+            <option value="12">Grade 12</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Quarter</label>
+          <select id="cm-quarter">
+            <option value="1">Q1</option>
+            <option value="2">Q2</option>
+            <option value="3">Q3</option>
+            <option value="4">Q4</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>DepEd Code</label>
+        <input type="text" id="cm-deped" placeholder="STEM_GP12KIN-Ia"/>
+      </div>
+      <div class="form-group">
+        <label>Sort Order</label>
+        <input type="number" id="cm-sort" placeholder="1"/>
+      </div>
+      <div id="cm-msg" class="msg"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal('chapter-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveChapter()">Save Chapter →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-overlay" id="student-modal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h3>Add Student to Whitelist</h3>
+      <button onclick="closeModal('student-modal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <p style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:16px;line-height:1.7;">
+        Adding an email here allows that student to log in.<br>
+        You still need to create their account in Supabase Auth and give them a password.
+      </p>
+      <div class="form-group">
+        <label>Student Email</label>
+        <input type="email" id="sm-email" placeholder="student@school.edu.ph"/>
+      </div>
+      <div id="sm-msg" class="msg"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal('student-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveStudent()">Add to Whitelist →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h3>Confirm Delete</h3>
+      <button onclick="closeModal('confirm-modal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <p style="color:var(--text2);font-size:13px;" id="confirm-msg">Are you sure?</p>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal('confirm-modal')">Cancel</button>
+      <button class="btn btn-danger" id="confirm-action-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://vmhfkqqsrokkehkejxdk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtaGZrcXFzcm9ra2Voa2VqeGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE0MzYsImV4cCI6MjA5MjY5NzQzNn0.6EDkxTi675qEEiz12PzgYty1MmbJdIW2s86PcH2vB0U';
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const BELT_COLORS = {
+  white:'#f0f0f0', yellow:'#f5c842', orange:'#f5852a',
+  blue:'#4a90d9', brown:'#a0623a', black:'#888888'
+};
+const BELTS = ['white','yellow','orange','blue','brown','black'];
+
+let user, chapters=[], whitelist=[], profiles=[], progress=[], questions=[];
+let editingChapterId = null;
+
+// ── INIT ──
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href='login.html'; return; }
+  user = session.user;
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  if (!prof || prof.role !== 'teacher') { window.location.href='app.html'; return; }
+  document.getElementById('nav-email').textContent = user.email;
+  await loadAll();
+  hideLoading();
+}
+
+async function loadAll() {
+  const [ch, wl, pr, prog, qs] = await Promise.all([
+    sb.from('chapters').select('*').order('sort_order'),
+    sb.from('email_whitelist').select('*').order('added_at'),
+    sb.from('profiles').select('*').order('created_at'),
+    sb.from('progress').select('*').order('updated_at', {ascending:false}),
+    sb.from('questions').select('*').order('created_at', {ascending:false}),
+  ]);
+  chapters = ch.data || [];
+  whitelist = wl.data || [];
+  profiles = pr.data || [];
+  progress = prog.data || [];
+  questions = qs.data || [];
+  updateBadges();
+  renderChapters();
+  renderMatrix();
+  renderStudents();
+  renderProgress();
+  populateChapterSelects();
+}
+
+function updateBadges() {
+  document.getElementById('badge-chapters').textContent = chapters.length;
+  document.getElementById('badge-students').textContent = whitelist.length;
+  document.getElementById('badge-questions').textContent = questions.length;
+}
+
+// ── NAVIGATION ──
+function showSection(id) {
+  document.querySelectorAll('.section-page').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id==='questions') loadQuestions();
+}
+
+// ── CHAPTERS ──
+function renderChapters() {
+  const tbody = document.getElementById('chapters-tbody');
+  tbody.innerHTML = chapters.map(ch => {
+    const qCount = questions.filter(q=>q.chapter_id===ch.id).length;
+    return `<tr onclick="openEditChapter('${ch.id}')">
+      <td style="color:var(--text);font-weight:500;">${ch.title}</td>
+      <td>Grade ${ch.grade}</td>
+      <td>Q${ch.quarter}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;">${ch.deped_code||'—'}</td>
+      <td><span class="badge ${qCount>0?'badge-green':'badge-grey'}">${qCount} questions</span></td>
+      <td><span class="badge ${ch.is_locked?'badge-grey':'badge-green'}">${ch.is_locked?'Locked':'Open'}</span></td>
+      <td onclick="event.stopPropagation()">
+        <label class="toggle">
+          <input type="checkbox" ${!ch.is_locked?'checked':''} onchange="toggleChapterLock('${ch.id}',this.checked)"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleChapterLock(id, unlocked) {
+  await sb.from('chapters').update({is_locked: !unlocked}).eq('id', id);
+  const ch = chapters.find(c=>c.id===id);
+  if (ch) ch.is_locked = !unlocked;
+  renderChapters();
+}
+
+function openAddChapter() {
+  editingChapterId = null;
+  document.getElementById('chapter-modal-title').textContent = 'Add Chapter';
+  document.getElementById('cm-id').value='';
+  document.getElementById('cm-id').disabled=false;
+  document.getElementById('cm-title').value='';
+  document.getElementById('cm-grade').value='11';
+  document.getElementById('cm-quarter').value='1';
+  document.getElementById('cm-deped').value='';
+  document.getElementById('cm-sort').value='';
+  document.getElementById('cm-msg').className='msg';
+  openModal('chapter-modal');
+}
+
+function openEditChapter(id) {
+  const ch = chapters.find(c=>c.id===id);
+  if (!ch) return;
+  editingChapterId = id;
+  document.getElementById('chapter-modal-title').textContent = 'Edit Chapter';
+  document.getElementById('cm-id').value=ch.id;
+  document.getElementById('cm-id').disabled=true;
+  document.getElementById('cm-title').value=ch.title;
+  document.getElementById('cm-grade').value=ch.grade;
+  document.getElementById('cm-quarter').value=ch.quarter;
+  document.getElementById('cm-deped').value=ch.deped_code||'';
+  document.getElementById('cm-sort').value=ch.sort_order||'';
+  document.getElementById('cm-msg').className='msg';
+  openModal('chapter-modal');
+}
+
+async function saveChapter() {
+  const id = document.getElementById('cm-id').value.trim();
+  const title = document.getElementById('cm-title').value.trim();
+  const grade = parseInt(document.getElementById('cm-grade').value);
+  const quarter = parseInt(document.getElementById('cm-quarter').value);
+  const deped_code = document.getElementById('cm-deped').value.trim();
+  const sort_order = parseInt(document.getElementById('cm-sort').value)||0;
+  const msg = document.getElementById('cm-msg');
+  if (!id||!title) { msg.textContent='ID and Title are required.'; msg.className='msg error show'; return; }
+  if (editingChapterId) {
+    const { error } = await sb.from('chapters').update({title,grade,quarter,deped_code,sort_order}).eq('id', id);
+    if (error) { msg.textContent='Error: '+error.message; msg.className='msg error show'; return; }
+  } else {
+    const { error } = await sb.from('chapters').insert({id,title,grade,quarter,deped_code,sort_order,is_locked:true});
+    if (error) { msg.textContent='Error: '+error.message; msg.className='msg error show'; return; }
+  }
+  closeModal('chapter-modal');
+  await loadAll();
+}
+
+// ── MATRIX ──
+function renderMatrix() {
+  const students = profiles.filter(p=>p.role==='student');
+  const head = document.getElementById('matrix-head');
+  const body = document.getElementById('matrix-body');
+  if (!students.length) {
+    head.innerHTML=''; body.innerHTML=`<tr><td colspan="99" style="padding:20px;color:var(--text3);font-family:var(--font-mono);font-size:12px;">No students yet.</td></tr>`;
+    return;
+  }
+  head.innerHTML = `<tr>
+    <th class="student-col">Student</th>
+    ${chapters.map(ch=>`<th title="${ch.title}">${ch.title.substring(0,8)}...</th>`).join('')}
+  </tr>`;
+  body.innerHTML = students.map(s => {
+    const cells = chapters.map(ch => {
+      const dots = BELTS.map(b => {
+        const p = progress.find(pr=>pr.student_id===s.id&&pr.chapter_id===ch.id&&pr.belt===b);
+        const passed = p?.passed;
+        return `<span class="bdot" style="${passed?`background:${BELT_COLORS[b]};border-color:${BELT_COLORS[b]};`:''}"></span>`;
+      }).join('');
+      return `<td><div class="matrix-belt-dots">${dots}</div></td>`;
+    }).join('');
+    const email = s.email||'';
+    const name = email.split('@')[0];
+    return `<tr><td class="student-name">${name}<br><span style="font-size:10px;color:var(--text3);font-family:var(--font-mono);">${email}</span></td>${cells}</tr>`;
+  }).join('');
+}
+
+// ── STUDENTS ──
+function renderStudents() {
+  const tbody = document.getElementById('students-tbody');
+  const allEmails = [...new Set([
+    ...whitelist.map(w=>w.email),
+    ...profiles.map(p=>p.email)
+  ])];
+  tbody.innerHTML = allEmails.map(email => {
+    const inWhitelist = whitelist.some(w=>w.email===email);
+    const profile = profiles.find(p=>p.email===email);
+    const hasAccount = !!profile;
+    const role = profile?.role||'—';
+    const created = profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : '—';
+    return `<tr>
+      <td style="color:var(--text);font-family:var(--font-mono);font-size:12px;">${email}</td>
+      <td><span class="badge ${role==='teacher'?'badge-gold':'badge-grey'}">${role}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px;">${created}</td>
+      <td><span class="badge ${inWhitelist?'badge-green':'badge-grey'}">${inWhitelist?'✓ Whitelisted':'Not whitelisted'}</span></td>
+      <td>
+        ${inWhitelist&&email!==user.email?`<button class="btn btn-danger" style="padding:4px 10px;font-size:10px;" onclick="confirmRemoveStudent('${email}')">Remove</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddStudent() { openModal('student-modal'); }
+
+async function saveStudent() {
+  const email = document.getElementById('sm-email').value.trim().toLowerCase();
+  const msg = document.getElementById('sm-msg');
+  if (!email) { msg.textContent='Please enter an email.'; msg.className='msg error show'; return; }
+  if (whitelist.some(w=>w.email===email)) { msg.textContent='This email is already whitelisted.'; msg.className='msg error show'; return; }
+  const { error } = await sb.from('email_whitelist').insert({email});
+  if (error) { msg.textContent='Error: '+error.message; msg.className='msg error show'; return; }
+  msg.textContent='Student added! ✓'; msg.className='msg success show';
+  setTimeout(()=>{ closeModal('student-modal'); loadAll(); }, 800);
+}
+
+function confirmRemoveStudent(email) {
+  document.getElementById('confirm-msg').textContent = `Remove "${email}" from the whitelist? They will no longer be able to log in.`;
+  document.getElementById('confirm-action-btn').onclick = () => removeStudent(email);
+  openModal('confirm-modal');
+}
+
+async function removeStudent(email) {
+  await sb.from('email_whitelist').delete().eq('email', email);
+  closeModal('confirm-modal');
+  await loadAll();
+}
+
+// ── QUESTIONS ──
+function switchQTab(tab) {
+  ['form','json','browse'].forEach(t=>{
+    document.getElementById('qtab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('qpanel-'+t).style.display = t===tab?'block':'none';
+  });
+  if (tab==='browse') loadQuestions();
+}
+
+function toggleQType() {
+  const type = document.getElementById('q-type').value;
+  document.getElementById('q-formula-section').style.display = type==='concept'?'none':'block';
+  document.getElementById('q-distractor-section').style.display = type==='numeric'?'none':'block';
+}
+
+function populateChapterSelects() {
+  const sel = document.getElementById('q-chapter');
+  const fsel = document.getElementById('filter-chapter');
+  const opts = chapters.map(ch=>`<option value="${ch.id}">${ch.title}</option>`).join('');
+  sel.innerHTML = opts;
+  fsel.innerHTML = '<option value="">All chapters</option>' + opts;
+}
+
+async function saveQuestion() {
+  const msg = document.getElementById('q-form-msg');
+  const chapter_id = document.getElementById('q-chapter').value;
+  const belt = document.getElementById('q-belt').value;
+  const type = document.getElementById('q-type').value;
+  const bloom_level = document.getElementById('q-bloom').value;
+  const template = document.getElementById('q-template').value.trim();
+  const formula = document.getElementById('q-formula').value.trim();
+  const correct_expr = document.getElementById('q-correct-expr').value.trim();
+  const deped_code = document.getElementById('q-deped').value.trim();
+  const explanation = document.getElementById('q-explanation').value.trim();
+  if (!template) { msg.textContent='Question template is required.'; msg.className='msg error show'; return; }
+  let params = {};
+  try { params = JSON.parse(document.getElementById('q-params').value||'{}'); } catch(e) { msg.textContent='Invalid JSON in params field.'; msg.className='msg error show'; return; }
+  const distractorRaw = document.getElementById('q-distractors').value;
+  const distractor_exprs = distractorRaw ? distractorRaw.split(',').map(d=>d.trim()).filter(Boolean) : [];
+  const { error } = await sb.from('questions').insert({
+    chapter_id, belt, type, bloom_level, template, formula,
+    correct_expr, params, distractor_exprs, explanation, deped_code
+  });
+  if (error) { msg.textContent='Error: '+error.message; msg.className='msg error show'; return; }
+  msg.textContent='Question saved! ✓'; msg.className='msg success show';
+  setTimeout(()=>{ clearQForm(); msg.className='msg'; loadAll(); }, 1000);
+}
+
+function clearQForm() {
+  ['q-template','q-formula','q-correct-expr','q-params','q-distractors','q-explanation','q-deped'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+}
+
+function validateJSON() {
+  const raw = document.getElementById('json-paste').value.trim();
+  const el = document.getElementById('json-validate-msg');
+  try {
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) throw new Error('Must be a JSON array [ ]');
+    el.innerHTML = `<span style="color:var(--teal);">✓ Valid JSON — ${arr.length} question${arr.length!==1?'s':''} ready to import</span>`;
+  } catch(e) {
+    el.innerHTML = `<span style="color:var(--red);">✗ Invalid JSON: ${e.message}</span>`;
+  }
+}
+
+async function importJSON() {
+  const raw = document.getElementById('json-paste').value.trim();
+  const el = document.getElementById('json-validate-msg');
+  let arr;
+  try { arr = JSON.parse(raw); if(!Array.isArray(arr)) throw new Error('Must be array'); }
+  catch(e) { el.innerHTML=`<span style="color:var(--red);">✗ Invalid JSON: ${e.message}</span>`; return; }
+  el.innerHTML = `<span style="color:var(--gold);">Importing ${arr.length} questions...</span>`;
+  const { error } = await sb.from('questions').insert(arr);
+  if (error) { el.innerHTML=`<span style="color:var(--red);">✗ Error: ${error.message}</span>`; return; }
+  el.innerHTML = `<span style="color:var(--teal);">✓ ${arr.length} questions imported successfully!</span>`;
+  document.getElementById('json-paste').value='';
+  await loadAll();
+}
+
+async function loadQuestions() {
+  const chFilter = document.getElementById('filter-chapter')?.value;
+  const beltFilter = document.getElementById('filter-belt')?.value;
+  let query = sb.from('questions').select('*').order('created_at',{ascending:false});
+  if (chFilter) query = query.eq('chapter_id', chFilter);
+  if (beltFilter) query = query.eq('belt', beltFilter);
+  const { data } = await query.limit(100);
+  const filtered = data || [];
+  const tbody = document.getElementById('questions-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML=`<tr><td colspan="5" style="padding:20px;color:var(--text3);font-family:var(--font-mono);font-size:12px;">No questions found. Add some above!</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map(q=>{
+    const ch = chapters.find(c=>c.id===q.chapter_id);
+    return `<tr>
+      <td><span class="bdot" style="background:${BELT_COLORS[q.belt]||'#555'};border-color:${BELT_COLORS[q.belt]||'#555'};"></span> ${q.belt}</td>
+      <td style="font-size:12px;">${ch?.title||q.chapter_id}</td>
+      <td><span class="badge badge-grey">${q.type}</span></td>
+      <td style="font-size:12px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${q.template}">${q.template}</td>
+      <td><button class="btn btn-danger" style="padding:4px 10px;font-size:10px;" onclick="confirmDeleteQuestion('${q.id}')">Delete</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function confirmDeleteQuestion(id) {
+  document.getElementById('confirm-msg').textContent = 'Delete this question? This cannot be undone.';
+  document.getElementById('confirm-action-btn').onclick = () => deleteQuestion(id);
+  openModal('confirm-modal');
+}
+
+async function deleteQuestion(id) {
+  await sb.from('questions').delete().eq('id', id);
+  closeModal('confirm-modal');
+  await loadAll();
+  loadQuestions();
+}
+
+// ── PROGRESS ──
+function renderProgress() {
+  const students = profiles.filter(p=>p.role==='student');
+  const passed = progress.filter(p=>p.passed).length;
+  const totalAttempts = progress.reduce((s,p)=>s+(p.attempts||0),0);
+  document.getElementById('progress-stats').innerHTML = `
+    <div class="progress-card"><div class="progress-card-num">${students.length}</div><div class="progress-card-label">Total Students</div></div>
+    <div class="progress-card"><div class="progress-card-num">${passed}</div><div class="progress-card-label">Belts Passed</div></div>
+    <div class="progress-card"><div class="progress-card-num">${totalAttempts}</div><div class="progress-card-label">Total Attempts</div></div>
+    <div class="progress-card"><div class="progress-card-num">${progress.length}</div><div class="progress-card-label">Active Records</div></div>
+  `;
+  const tbody = document.getElementById('progress-tbody');
+  if (!progress.length) {
+    tbody.innerHTML=`<tr><td colspan="7" style="padding:20px;color:var(--text3);font-family:var(--font-mono);font-size:12px;">No student activity yet.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = progress.map(p=>{
+    const profile = profiles.find(pr=>pr.id===p.student_id);
+    const ch = chapters.find(c=>c.id===p.chapter_id);
+    const email = profile?.email||'Unknown';
+    const name = email.split('@')[0];
+    const date = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '—';
+    return `<tr>
+      <td style="font-size:12px;">${name}<br><span style="font-size:10px;color:var(--text3);font-family:var(--font-mono);">${email}</span></td>
+      <td style="font-size:12px;">${ch?.title||p.chapter_id}</td>
+      <td><span class="bdot" style="background:${BELT_COLORS[p.belt]||'#555'};border-color:${BELT_COLORS[p.belt]||'#555'};"></span> ${p.belt}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;">${p.attempts||0}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;">${Math.round(p.best_score||0)}%</td>
+      <td><span class="badge ${p.passed?'badge-green':'badge-grey'}">${p.passed?'✓ Passed':'In progress'}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px;">${date}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportProgress() {
+  const rows = [['Student','Email','Chapter','Belt','Attempts','Best Score','Passed','Last Active']];
+  progress.forEach(p=>{
+    const profile = profiles.find(pr=>pr.id===p.student_id);
+    const ch = chapters.find(c=>c.id===p.chapter_id);
+    rows.push([
+      profile?.email?.split('@')[0]||'Unknown',
+      profile?.email||'',
+      ch?.title||p.chapter_id,
+      p.belt, p.attempts||0,
+      Math.round(p.best_score||0)+'%',
+      p.passed?'Yes':'No',
+      p.updated_at?new Date(p.updated_at).toLocaleDateString():''
+    ]);
+  });
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'physics-blackbelt-progress.csv';
+  a.click();
+}
+
+// ── MODAL HELPERS ──
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+
+function hideLoading() {
+  const el = document.getElementById('loading-screen');
+  el.style.opacity='0'; el.style.transition='opacity 0.4s';
+  setTimeout(()=>el.style.display='none',400);
+}
+
+async function signOut() { await sb.auth.signOut(); window.location.href='login.html'; }
+
+init();
+</script>
+</body>
+</html>
