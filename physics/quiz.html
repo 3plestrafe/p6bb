@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Physics Black Belt — Quiz</title>
+<link rel="stylesheet" href="css/app.css"/>
+<style>
+.quiz-wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:24px 24px 80px;}
+
+/* Progress bar */
+.quiz-topbar{display:flex;align-items:center;gap:16px;margin-bottom:28px;}
+.quiz-back{background:none;border:1px solid var(--border);border-radius:3px;color:var(--text3);padding:6px 12px;cursor:pointer;font-family:var(--font-mono);font-size:10px;letter-spacing:0.04em;transition:all 0.15s;text-decoration:none;}
+.quiz-back:hover{color:var(--text);border-color:var(--border2);}
+.quiz-progress-wrap{flex:1;}
+.quiz-progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.quiz-progress-fill{height:100%;background:var(--gold);border-radius:2px;transition:width 0.4s ease;}
+.quiz-counter{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:5px;letter-spacing:0.04em;}
+
+/* Belt badge */
+.belt-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--font-display);font-size:9px;font-weight:600;
+  letter-spacing:0.08em;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;margin-bottom:16px;
+  border:1px solid transparent;
+}
+
+/* Question card */
+.question-card{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:8px;padding:28px;margin-bottom:16px;
+  animation:rise 0.3s forwards;
+}
+.question-num{
+  font-family:var(--font-mono);font-size:10px;color:var(--text3);
+  letter-spacing:0.08em;margin-bottom:12px;
+}
+.question-text{
+  font-size:16px;line-height:1.7;color:var(--text);
+  font-weight:400;margin-bottom:4px;
+}
+.formula-box{
+  background:var(--bg3);border-left:3px solid var(--gold);
+  border-radius:0 4px 4px 0;padding:10px 14px;
+  margin:14px 0;font-family:var(--font-mono);font-size:13px;color:var(--text2);
+}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:8px;margin-top:20px;}
+.choice-btn{
+  text-align:left;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:6px;
+  padding:14px 18px;cursor:pointer;
+  font-size:14px;font-family:var(--font-body);color:var(--text);
+  transition:all 0.15s;display:flex;align-items:center;gap:14px;
+  width:100%;
+}
+.choice-btn:hover:not(:disabled){border-color:var(--gold);background:var(--bg4);}
+.choice-btn:disabled{cursor:not-allowed;}
+.choice-btn.correct{
+  border-color:var(--teal)!important;
+  background:rgba(45,212,160,0.08)!important;
+  color:var(--teal)!important;
+}
+.choice-btn.wrong{
+  border-color:var(--red)!important;
+  background:rgba(255,85,85,0.06)!important;
+  color:var(--red)!important;
+}
+.choice-letter{
+  width:26px;height:26px;border-radius:50%;
+  border:1px solid currentColor;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
+  font-family:var(--font-display);
+}
+
+/* Explanation */
+.explanation-box{
+  background:var(--bg3);border:1px solid var(--border);
+  border-left:3px solid var(--teal);
+  border-radius:0 6px 6px 0;padding:14px 16px;
+  margin-top:14px;font-size:13px;color:var(--text2);
+  line-height:1.7;font-family:var(--font-mono);
+  display:none;
+}
+.explanation-box.show{display:block;animation:rise 0.3s forwards;}
+.explanation-box.wrong-exp{border-left-color:var(--red);}
+
+/* Next button */
+.next-btn{
+  width:100%;margin-top:14px;padding:14px;
+  font-family:var(--font-display);font-size:11px;font-weight:700;
+  letter-spacing:0.08em;text-transform:uppercase;
+  background:var(--gold);color:#111318;border:none;border-radius:6px;
+  cursor:pointer;transition:all 0.15s;display:none;
+}
+.next-btn:hover{background:var(--gold2);}
+.next-btn.show{display:block;}
+
+/* Results screen */
+.results-screen{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:8px;padding:40px 32px;text-align:center;
+  animation:rise 0.4s forwards;
+}
+.results-icon{font-size:52px;margin-bottom:16px;}
+.results-score{
+  font-family:var(--font-display);font-size:48px;font-weight:900;
+  color:var(--gold);letter-spacing:0.02em;line-height:1;margin-bottom:8px;
+}
+.results-label{font-family:var(--font-mono);font-size:12px;color:var(--text3);letter-spacing:0.08em;margin-bottom:24px;}
+.results-verdict{
+  font-family:var(--font-display);font-size:14px;font-weight:700;
+  letter-spacing:0.05em;padding:10px 24px;border-radius:4px;
+  display:inline-block;margin-bottom:28px;
+}
+.results-verdict.passed{background:rgba(45,212,160,0.12);color:var(--teal);}
+.results-verdict.failed{background:rgba(255,85,85,0.1);color:var(--red);}
+.results-breakdown{
+  display:flex;justify-content:center;gap:24px;flex-wrap:wrap;
+  margin-bottom:32px;padding-bottom:28px;border-bottom:1px solid var(--border);
+}
+.results-stat{display:flex;flex-direction:column;gap:4px;align-items:center;}
+.results-stat-num{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text);}
+.results-stat-label{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:0.06em;}
+.results-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+/* Empty state */
+.empty-state{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:60px 32px;text-align:center;
+}
+.empty-state h3{font-family:var(--font-display);font-size:14px;color:var(--text);margin-bottom:8px;}
+.empty-state p{font-size:13px;color:var(--text3);font-family:var(--font-mono);line-height:1.7;}
+
+/* Loading */
+.quiz-loading{text-align:center;padding:60px 20px;}
+.quiz-loading-text{font-family:var(--font-mono);font-size:12px;color:var(--text3);letter-spacing:0.1em;animation:pulse 1.5s infinite;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
+  <div class="nav-right">
+    <div class="nav-user" id="nav-chapter-belt">—</div>
+    <a class="nav-btn" href="app.html">← Dashboard</a>
+  </div>
+</nav>
+
+<div class="quiz-wrap">
+
+  <!-- Loading state -->
+  <div class="quiz-loading" id="state-loading">
+    <div class="quiz-loading-text">⚡ LOADING QUESTIONS...</div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" id="state-empty" style="display:none;">
+    <div style="font-size:40px;margin-bottom:16px;">📭</div>
+    <h3>No Questions Yet</h3>
+    <p>There are no questions for this chapter and belt level yet.<br>Your teacher will add questions soon.</p>
+    <a href="app.html" class="btn btn-ghost" style="display:inline-flex;margin-top:20px;">← Back to Dashboard</a>
+  </div>
+
+  <!-- Quiz state -->
+  <div id="state-quiz" style="display:none;">
+    <div class="quiz-topbar">
+      <a class="quiz-back" href="app.html">← Exit</a>
+      <div class="quiz-progress-wrap">
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="quiz-counter" id="quiz-counter">Question 1 of 10</div>
+      </div>
+    </div>
+
+    <div id="belt-badge-wrap"></div>
+
+    <div class="question-card" id="question-card">
+      <div class="question-num" id="question-num">Question 1</div>
+      <div class="question-text" id="question-text"></div>
+      <div class="formula-box" id="formula-box" style="display:none;"></div>
+      <div class="choices" id="choices"></div>
+      <div class="explanation-box" id="explanation-box"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+
+  <!-- Results state -->
+  <div id="state-results" style="display:none;">
+    <div class="results-screen">
+      <div class="results-icon" id="results-icon">🥋</div>
+      <div class="results-score" id="results-score">0%</div>
+      <div class="results-label">QUIZ COMPLETE</div>
+      <div class="results-verdict" id="results-verdict">—</div>
+      <div class="results-breakdown">
+        <div class="results-stat"><div class="results-stat-num" id="res-correct">0</div><div class="results-stat-label">Correct</div></div>
+        <div class="results-stat"><div class="results-stat-num" id="res-total">0</div><div class="results-stat-label">Total</div></div>
+        <div class="results-stat"><div class="results-stat-num" id="res-xp">0</div><div class="results-stat-label">XP Earned</div></div>
+        <div class="results-stat"><div class="results-stat-num" id="res-attempts">0</div><div class="results-stat-label">Attempt #</div></div>
+      </div>
+      <div id="belt-unlock-msg" style="display:none;background:rgba(45,212,160,0.08);border:1px solid rgba(45,212,160,0.2);border-radius:6px;padding:16px;margin-bottom:24px;font-family:var(--font-mono);font-size:12px;color:var(--teal);line-height:1.7;"></div>
+      <div class="results-actions">
+        <a href="app.html" class="btn btn-ghost">← Dashboard</a>
+        <button class="btn btn-ghost" onclick="retakeQuiz()">Retake Quiz ↺</button>
+        <button class="btn btn-gold" id="next-belt-btn" style="display:none;" onclick="goNextBelt()">Next Belt →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://vmhfkqqsrokkehkejxdk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtaGZrcXFzcm9ra2Voa2VqeGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE0MzYsImV4cCI6MjA5MjY5NzQzNn0.6EDkxTi675qEEiz12PzgYty1MmbJdIW2s86PcH2vB0U';
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const BELT_ORDER = ['white','yellow','orange','blue','brown','black'];
+const BELT_COLORS = {white:'#f0f0f0',yellow:'#f5c842',orange:'#f5852a',blue:'#4a90d9',brown:'#a0623a',black:'#888888'};
+const BELT_LABELS = {white:'White Belt',yellow:'Yellow Belt',orange:'Orange Belt',blue:'Blue Belt',brown:'Brown Belt',black:'Black Belt'};
+const PASS_THRESHOLD = 85; // % to pass
+const QUESTIONS_PER_QUIZ = 10;
+
+// URL params
+const params = new URLSearchParams(window.location.search);
+const chapterId = params.get('chapter');
+const belt = params.get('belt') || 'white';
+
+let user, questions=[], sessionQuestions=[], currentIdx=0, correct=0, answered=false;
+let chapterData = null;
+
+// ── INIT ──
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href='login.html'; return; }
+  user = session.user;
+  if (!chapterId) { window.location.href='app.html'; return; }
+  await loadQuiz();
+}
+
+async function loadQuiz() {
+  // Load chapter info
+  const { data: ch } = await sb.from('chapters').select('*').eq('id', chapterId).single();
+  chapterData = ch;
+
+  // Update nav
+  if (ch) {
+    document.getElementById('nav-chapter-belt').textContent =
+      `${ch.title} — ${BELT_LABELS[belt]}`;
+  }
+
+  // Load questions for this chapter + belt
+  const { data: qs } = await sb.from('questions')
+    .select('*')
+    .eq('chapter_id', chapterId)
+    .eq('belt', belt);
+
+  if (!qs || qs.length === 0) {
+    show('empty');
+    return;
+  }
+
+  // Shuffle and pick up to QUESTIONS_PER_QUIZ
+  questions = shuffle(qs).slice(0, QUESTIONS_PER_QUIZ);
+
+  // Generate session questions (resolve template params)
+  sessionQuestions = questions.map(q => generateQuestion(q));
+
+  show('quiz');
+  renderBeltBadge();
+  renderQuestion();
+}
+
+// ── QUESTION ENGINE ──
+function generateQuestion(q) {
+  // Resolve random params
+  const resolvedParams = {};
+  const params = q.params || {};
+  for (const [key, cfg] of Object.entries(params)) {
+    if (cfg.min !== undefined && cfg.max !== undefined) {
+      const steps = Math.floor((cfg.max - cfg.min) / (cfg.step || 1));
+      const randomStep = Math.floor(Math.random() * (steps + 1));
+      resolvedParams[key] = cfg.min + randomStep * (cfg.step || 1);
+    } else {
+      resolvedParams[key] = cfg;
+    }
+  }
+
+  // Calculate correct answer
+  let correctAnswer = null;
+  let correctValue = null;
+  if (q.correct_expr) {
+    try {
+      const fn = new Function(...Object.keys(resolvedParams), `return ${q.correct_expr}`);
+      correctValue = fn(...Object.values(resolvedParams));
+      correctAnswer = Math.round(correctValue * 100) / 100;
+    } catch(e) { console.warn('Error computing answer:', e); }
+  }
+
+  // Generate distractor values
+  const distractors = (q.distractor_exprs || []).map(expr => {
+    try {
+      const fn = new Function(...Object.keys(resolvedParams), `return ${expr}`);
+      const val = fn(...Object.values(resolvedParams));
+      return Math.round(val * 100) / 100;
+    } catch(e) { return null; }
+  }).filter(v => v !== null && v !== correctAnswer && !isNaN(v));
+
+  // Build choices array (correct + up to 3 distractors, shuffled)
+  const wrongChoices = shuffle(distractors).slice(0, 3);
+  const allChoices = shuffle([correctAnswer, ...wrongChoices]);
+
+  // Fill template
+  const filledTemplate = fillTemplate(q.template, resolvedParams, correctAnswer);
+  const filledExplanation = fillTemplate(q.explanation || '', resolvedParams, correctAnswer);
+  const filledFormula = q.formula ? fillTemplate(q.formula, resolvedParams, correctAnswer) : '';
+
+  return {
+    ...q,
+    resolvedParams,
+    correctAnswer,
+    allChoices,
+    filledTemplate,
+    filledExplanation,
+    filledFormula,
+  };
+}
+
+function fillTemplate(str, params, answer) {
+  if (!str) return '';
+  let result = str;
+  for (const [key, val] of Object.entries(params)) {
+    result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), val);
+  }
+  result = result.replace(/\{answer\}/g, answer ?? '?');
+  return result;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ── RENDER ──
+function renderBeltBadge() {
+  const color = BELT_COLORS[belt] || '#888';
+  document.getElementById('belt-badge-wrap').innerHTML = `
+    <div class="belt-badge" style="background:${color}18;color:${color};border-color:${color}40;">
+      <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;"></span>
+      ${BELT_LABELS[belt]} — ${chapterData?.title || ''}
+    </div>`;
+}
+
+function renderQuestion() {
+  const q = sessionQuestions[currentIdx];
+  const total = sessionQuestions.length;
+  const pct = ((currentIdx) / total) * 100;
+
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('quiz-counter').textContent = `Question ${currentIdx + 1} of ${total}`;
+  document.getElementById('question-num').textContent = `Question ${currentIdx + 1}`;
+  document.getElementById('question-text').textContent = q.filledTemplate;
+
+  // Formula
+  const fbox = document.getElementById('formula-box');
+  if (q.filledFormula && belt !== 'white') {
+    fbox.textContent = '📐 ' + q.filledFormula;
+    fbox.style.display = 'block';
+  } else {
+    fbox.style.display = 'none';
+  }
+
+  // Choices
+  const letters = ['A','B','C','D'];
+  document.getElementById('choices').innerHTML = q.allChoices.map((choice, i) => `
+    <button class="choice-btn" onclick="selectAnswer(${i})" id="choice-${i}">
+      <div class="choice-letter">${letters[i]}</div>
+      <span>${choice}</span>
+    </button>`).join('');
+
+  // Reset
+  document.getElementById('explanation-box').className = 'explanation-box';
+  document.getElementById('explanation-box').textContent = '';
+  document.getElementById('next-btn').className = 'next-btn';
+  answered = false;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q = sessionQuestions[currentIdx];
+  const selected = q.allChoices[idx];
+  const isCorrect = selected === q.correctAnswer;
+
+  if (isCorrect) correct++;
+
+  // Visual feedback on all buttons
+  q.allChoices.forEach((choice, i) => {
+    const btn = document.getElementById('choice-' + i);
+    btn.disabled = true;
+    if (choice === q.correctAnswer) btn.classList.add('correct');
+    else if (i === idx && !isCorrect) btn.classList.add('wrong');
+  });
+
+  // Explanation
+  const expBox = document.getElementById('explanation-box');
+  if (q.filledExplanation) {
+    expBox.textContent = (isCorrect ? '✓ ' : '✗ ') + q.filledExplanation;
+    expBox.className = `explanation-box show ${isCorrect ? '' : 'wrong-exp'}`;
+  }
+
+  // Next button
+  const nextBtn = document.getElementById('next-btn');
+  const isLast = currentIdx === sessionQuestions.length - 1;
+  nextBtn.textContent = isLast ? 'See Results →' : 'Next Question →';
+  nextBtn.className = 'next-btn show';
+}
+
+function nextQuestion() {
+  currentIdx++;
+  if (currentIdx >= sessionQuestions.length) {
+    showResults();
+  } else {
+    // Animate card out and in
+    const card = document.getElementById('question-card');
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(8px)';
+    setTimeout(() => {
+      renderQuestion();
+      card.style.transition = 'none';
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(8px)';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          card.style.transition = 'all 0.25s ease';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        });
+      });
+    }, 150);
+  }
+}
+
+async function showResults() {
+  const total = sessionQuestions.length;
+  const score = Math.round((correct / total) * 100);
+  const passed = score >= PASS_THRESHOLD;
+  const xp = correct * 5;
+
+  // Save progress to Supabase
+  const attempts = await saveProgress(score, passed);
+
+  // Show results screen
+  show('results');
+
+  document.getElementById('results-score').textContent = score + '%';
+  document.getElementById('results-icon').textContent = passed ? '🥋' : '💪';
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-total').textContent = total;
+  document.getElementById('res-xp').textContent = '+' + xp;
+  document.getElementById('res-attempts').textContent = attempts;
+
+  const verdict = document.getElementById('results-verdict');
+  if (passed) {
+    verdict.textContent = `✓ BELT PASSED — ${BELT_LABELS[belt]}`;
+    verdict.className = 'results-verdict passed';
+
+    // Check if there's a next belt
+    const beltIdx = BELT_ORDER.indexOf(belt);
+    if (beltIdx < BELT_ORDER.length - 1) {
+      const nextBelt = BELT_ORDER[beltIdx + 1];
+      const unlockMsg = document.getElementById('belt-unlock-msg');
+      unlockMsg.innerHTML = `🎉 You've unlocked <strong>${BELT_LABELS[nextBelt]}</strong> for ${chapterData?.title}!<br>Head back to the dashboard to continue your training.`;
+      unlockMsg.style.display = 'block';
+      document.getElementById('next-belt-btn').style.display = 'inline-flex';
+    }
+  } else {
+    verdict.textContent = `✗ NOT PASSED — ${score}% (Need ${PASS_THRESHOLD}%)`;
+    verdict.className = 'results-verdict failed';
+  }
+}
+
+async function saveProgress(score, passed) {
+  // Get existing progress record
+  const { data: existing } = await sb.from('progress')
+    .select('*')
+    .eq('student_id', user.id)
+    .eq('chapter_id', chapterId)
+    .eq('belt', belt)
+    .single();
+
+  const attempts = (existing?.attempts || 0) + 1;
+  const bestScore = Math.max(score, existing?.best_score || 0);
+  const alreadyPassed = existing?.passed || false;
+
+  if (existing) {
+    await sb.from('progress').update({
+      attempts,
+      best_score: bestScore,
+      passed: alreadyPassed || passed,
+      updated_at: new Date().toISOString(),
+    }).eq('id', existing.id);
+  } else {
+    await sb.from('progress').insert({
+      student_id: user.id,
+      chapter_id: chapterId,
+      belt,
+      attempts,
+      best_score: bestScore,
+      passed,
+    });
+  }
+
+  return attempts;
+}
+
+function retakeQuiz() {
+  currentIdx = 0;
+  correct = 0;
+  answered = false;
+  // Re-shuffle and regenerate
+  sessionQuestions = shuffle(questions).slice(0, QUESTIONS_PER_QUIZ).map(q => generateQuestion(q));
+  show('quiz');
+  renderBeltBadge();
+  renderQuestion();
+}
+
+function goNextBelt() {
+  const beltIdx = BELT_ORDER.indexOf(belt);
+  if (beltIdx < BELT_ORDER.length - 1) {
+    const nextBelt = BELT_ORDER[beltIdx + 1];
+    window.location.href = `quiz.html?chapter=${chapterId}&belt=${nextBelt}`;
+  }
+}
+
+function show(state) {
+  document.getElementById('state-loading').style.display = state === 'loading' ? 'block' : 'none';
+  document.getElementById('state-empty').style.display = state === 'empty' ? 'block' : 'none';
+  document.getElementById('state-quiz').style.display = state === 'quiz' ? 'block' : 'none';
+  document.getElementById('state-results').style.display = state === 'results' ? 'block' : 'none';
+}
+
+init();
+</script>
+</body>
+</html>
