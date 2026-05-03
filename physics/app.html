@@ -29,6 +29,11 @@
   </a>
   <div class="nav-right">
     <div id="admin-link-wrap"></div>
+    <!-- XP badge in nav -->
+    <div id="nav-xp-badge" style="display:none;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:4px 12px;letter-spacing:0.04em;">
+      ⚡ <span id="nav-xp">0</span> XP
+    </div>
+    <a class="nav-btn" href="leaderboard.html" style="text-decoration:none;">🏆 Ranks</a>
     <div class="nav-user">logged in as <span id="nav-email">—</span></div>
     <button class="nav-btn" onclick="signOut()">Sign out</button>
   </div>
@@ -45,6 +50,11 @@
       <div class="stat-chip"><div class="stat-chip-num" id="stat-chapters">0</div><div class="stat-chip-label">Unlocked</div></div>
       <div class="stat-chip"><div class="stat-chip-num" id="stat-belts">0</div><div class="stat-chip-label">Belts Earned</div></div>
       <div class="stat-chip"><div class="stat-chip-num" id="stat-highest">—</div><div class="stat-chip-label">Highest Belt</div></div>
+      <!-- Streak chip -->
+      <div class="stat-chip" id="streak-chip" style="display:none;">
+        <div class="stat-chip-num" id="stat-streak" style="color:#f5852a;">0🔥</div>
+        <div class="stat-chip-label">Day Streak</div>
+      </div>
     </div>
   </div>
 
@@ -90,6 +100,11 @@
       <button class="modal-close" onclick="closeModalDirect()">✕</button>
     </div>
     <div class="modal-body">
+      <!-- Scenario mission briefing -->
+      <div id="modal-scenario" style="display:none;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.2);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:16px;font-family:var(--font-mono);font-size:12px;color:var(--text2);line-height:1.7;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:var(--gold);margin-bottom:6px;font-family:var(--font-display);">📡 MISSION BRIEFING</div>
+        <div id="modal-scenario-text"></div>
+      </div>
       <div class="belt-tabs" id="modal-belt-tabs"></div>
       <div class="activity-list" id="modal-activities"></div>
       <div class="belt-progress-title">Belt Progress in this chapter</div>
@@ -128,6 +143,7 @@ async function init() {
   user = session.user;
   if (window.location.hash.includes('access_token')) history.replaceState(null,'',window.location.pathname);
   await Promise.all([loadProfile(), loadChapters(), loadProgress()]);
+  await updateStreak();
   renderDashboard();
   hideLoading();
 }
@@ -143,6 +159,10 @@ async function loadProfile() {
     document.getElementById('admin-link-wrap').innerHTML =
       '<a class="nav-btn admin" href="admin.html">⚙ Admin</a>';
   }
+  // Show XP in nav
+  const xp = profile?.xp || 0;
+  document.getElementById('nav-xp').textContent = xp.toLocaleString();
+  document.getElementById('nav-xp-badge').style.display = 'flex';
 }
 
 async function loadChapters() {
@@ -153,6 +173,36 @@ async function loadChapters() {
 async function loadProgress() {
   const { data } = await sb.from('progress').select('*').eq('student_id', user.id);
   progress = data || [];
+}
+
+// ── STREAK LOGIC ──
+async function updateStreak() {
+  if (!profile) return;
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const lastActive = profile.last_active;
+  let streak = profile.streak_days || 0;
+
+  if (lastActive === today) {
+    // Already active today, no change needed
+  } else if (lastActive) {
+    const last = new Date(lastActive);
+    const now = new Date(today);
+    const diffDays = Math.round((now - last) / (1000 * 60 * 60 * 24));
+    if (diffDays === 1) {
+      streak += 1; // consecutive day
+    } else {
+      streak = 1; // streak broken, reset to 1
+    }
+    await sb.from('profiles').update({ streak_days: streak, last_active: today }).eq('id', user.id);
+    profile.streak_days = streak;
+    profile.last_active = today;
+  } else {
+    // First ever login
+    streak = 1;
+    await sb.from('profiles').update({ streak_days: 1, last_active: today }).eq('id', user.id);
+    profile.streak_days = 1;
+    profile.last_active = today;
+  }
 }
 
 function getProg(chId, belt) { return progress.find(p=>p.chapter_id===chId&&p.belt===belt)||null; }
@@ -167,10 +217,21 @@ function renderDashboard() {
   const totalBelts = progress.filter(p=>p.passed).length;
   let highest = '—';
   for (let i=BELTS.length-1;i>=0;i--) { if(progress.some(p=>p.belt===BELTS[i].id&&p.passed)){highest=BELTS[i].label;break;} }
-  document.getElementById('stat-xp').textContent = Math.round(progress.reduce((s,p)=>s+(p.best_score||0),0));
+
+  // Use real XP from profile, fallback to calculated
+  const xp = profile?.xp || Math.round(progress.reduce((s,p)=>s+(p.best_score||0),0));
+  document.getElementById('stat-xp').textContent = xp.toLocaleString();
   document.getElementById('stat-chapters').textContent = unlocked;
   document.getElementById('stat-belts').textContent = totalBelts;
   document.getElementById('stat-highest').textContent = highest;
+
+  // Streak
+  const streak = profile?.streak_days || 0;
+  if (streak > 0) {
+    document.getElementById('stat-streak').textContent = streak + '🔥';
+    document.getElementById('streak-chip').style.display = 'flex';
+  }
+
   document.getElementById('grid-g11').innerHTML = chapters.filter(c=>c.grade===11).map(renderCard).join('');
   document.getElementById('grid-g12').innerHTML = chapters.filter(c=>c.grade===12).map(renderCard).join('');
 }
@@ -206,6 +267,17 @@ function openChapter(id) {
   document.getElementById('modal-icon').textContent = ICONS[id]||'📖';
   document.getElementById('modal-title').textContent = currentChapter.title;
   document.getElementById('modal-meta').textContent = `Grade ${currentChapter.grade} · Quarter ${currentChapter.quarter} · ${currentChapter.deped_code||''}`;
+
+  // Show scenario if available
+  const scenarioEl = document.getElementById('modal-scenario');
+  const scenarioText = document.getElementById('modal-scenario-text');
+  if (currentChapter.scenario) {
+    scenarioText.textContent = currentChapter.scenario;
+    scenarioEl.style.display = 'block';
+  } else {
+    scenarioEl.style.display = 'none';
+  }
+
   renderModalTabs(); renderModalActivities(); renderModalProgress();
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow='hidden';

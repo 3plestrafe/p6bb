@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Physics Black Belt — Leaderboard</title>
+<link rel="stylesheet" href="css/app.css"/>
+<style>
+.lb-wrap{max-width:680px;margin:0 auto;padding:32px 24px 80px;position:relative;z-index:1;}
+
+.lb-header{margin-bottom:28px;}
+.lb-title{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--text);letter-spacing:0.04em;margin-bottom:4px;}
+.lb-sub{font-family:var(--font-mono);font-size:11px;color:var(--text3);letter-spacing:0.06em;}
+
+/* Tabs */
+.lb-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:4px;overflow:hidden;width:fit-content;}
+.lb-tab{padding:9px 24px;font-family:var(--font-display);font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;background:none;border:none;color:var(--text3);cursor:pointer;transition:all 0.15s;}
+.lb-tab.active{background:var(--gold);color:#111318;}
+.lb-tab:not(.active):hover{background:var(--bg3);color:var(--text2);}
+
+/* Podium */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-bottom:32px;padding:24px 0 0;}
+.podium-slot{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.podium-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:18px;font-weight:900;border:2px solid transparent;}
+.podium-name{font-family:var(--font-mono);font-size:10px;color:var(--text2);letter-spacing:0.04em;text-align:center;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.podium-score{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text3);}
+.podium-block{width:70px;border-radius:4px 4px 0 0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:16px;font-weight:900;}
+.podium-slot.rank-1 .podium-avatar{border-color:#f5c842;background:rgba(245,200,66,0.12);color:#f5c842;}
+.podium-slot.rank-1 .podium-block{height:80px;background:linear-gradient(180deg,rgba(245,200,66,0.2),rgba(245,200,66,0.05));}
+.podium-slot.rank-2 .podium-avatar{border-color:#d4d0c8;background:rgba(212,208,200,0.1);color:#d4d0c8;}
+.podium-slot.rank-2 .podium-block{height:56px;background:linear-gradient(180deg,rgba(212,208,200,0.15),rgba(212,208,200,0.03));}
+.podium-slot.rank-3 .podium-avatar{border-color:#a0623a;background:rgba(160,98,58,0.12);color:#a0623a;}
+.podium-slot.rank-3 .podium-block{height:40px;background:linear-gradient(180deg,rgba(160,98,58,0.2),rgba(160,98,58,0.05));}
+
+/* Table */
+.lb-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-family:var(--font-display);font-size:8px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);padding:10px 16px;border-bottom:1px solid var(--border);text-align:left;background:var(--bg3);}
+.lb-table th.right{text-align:right;}
+.lb-table td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle;}
+.lb-table tr:last-child td{border-bottom:none;}
+.lb-table tr:hover td{background:var(--bg3);}
+.lb-table tr.is-me td{background:rgba(201,169,110,0.05);}
+.lb-table tr.is-me td:first-child{border-left:2px solid var(--gold);}
+
+.rank-num{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text3);width:36px;}
+.rank-num.top3{color:var(--gold);}
+.player-name{font-size:14px;color:var(--text);font-weight:500;}
+.player-you{font-family:var(--font-mono);font-size:9px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.2);border-radius:3px;padding:1px 6px;margin-left:8px;letter-spacing:0.04em;vertical-align:middle;}
+.belt-count{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);text-align:right;}
+.belt-dots-row{display:flex;gap:3px;justify-content:flex-end;}
+.mini-belt-dot{width:7px;height:7px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);}
+
+/* Loading / empty */
+.lb-loading{text-align:center;padding:60px 20px;font-family:var(--font-mono);font-size:12px;color:var(--text3);letter-spacing:0.1em;animation:pulse 1.5s infinite;}
+.lb-empty{text-align:center;padding:60px 20px;font-family:var(--font-mono);font-size:12px;color:var(--text3);}
+
+/* My rank banner */
+.my-rank-banner{
+  background:var(--bg2);border:1px solid rgba(201,169,110,0.2);
+  border-radius:6px;padding:14px 18px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:var(--font-mono);font-size:12px;
+}
+.my-rank-banner.hidden{display:none;}
+.my-rank-left{color:var(--text3);}
+.my-rank-num{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--gold);}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
+  <div class="nav-right">
+    <div class="nav-user">logged in as <span id="nav-email">—</span></div>
+    <a class="nav-btn" href="app.html">← Dashboard</a>
+    <button class="nav-btn" onclick="signOut()">Sign out</button>
+  </div>
+</nav>
+
+<div class="lb-wrap">
+
+  <div class="lb-header anim-rise anim-rise-1">
+    <div class="lb-title">🏆 LEADERBOARD</div>
+    <div class="lb-sub">// ranked by belts earned — keep training to climb the ranks</div>
+  </div>
+
+  <div class="lb-tabs anim-rise anim-rise-2">
+    <button class="lb-tab active" onclick="switchTab('monthly')" id="tab-monthly">This Month</button>
+    <button class="lb-tab" onclick="switchTab('alltime')" id="tab-alltime">All Time</button>
+  </div>
+
+  <!-- My rank banner -->
+  <div class="my-rank-banner hidden anim-rise anim-rise-2" id="my-rank-banner">
+    <div class="my-rank-left">Your rank this period</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div id="my-rank-belts" style="font-size:12px;color:var(--text2);"></div>
+      <div class="my-rank-num" id="my-rank-num">#—</div>
+    </div>
+  </div>
+
+  <!-- Podium (top 3) -->
+  <div id="podium-wrap" class="anim-rise anim-rise-3"></div>
+
+  <!-- Full table -->
+  <div class="lb-table-wrap anim-rise anim-rise-4">
+    <div id="lb-content" class="lb-loading">⚡ LOADING RANKINGS...</div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://vmhfkqqsrokkehkejxdk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtaGZrcXFzcm9ra2Voa2VqeGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE0MzYsImV4cCI6MjA5MjY5NzQzNn0.6EDkxTi675qEEiz12PzgYty1MmbJdIW2s86PcH2vB0U';
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const BELT_COLORS = {white:'#f0f0f0',yellow:'#f5c842',orange:'#f5852a',blue:'#4a90d9',brown:'#a0623a',black:'#888888'};
+const BELT_ORDER = ['white','yellow','orange','blue','brown','black'];
+
+let user, currentTab = 'monthly';
+
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href='login.html'; return; }
+  user = session.user;
+  document.getElementById('nav-email').textContent = user.email || '';
+  await loadLeaderboard('monthly');
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-monthly').className = 'lb-tab' + (tab==='monthly'?' active':'');
+  document.getElementById('tab-alltime').className = 'lb-tab' + (tab==='alltime'?' active':'');
+  document.getElementById('lb-content').className = 'lb-loading';
+  document.getElementById('lb-content').textContent = '⚡ LOADING RANKINGS...';
+  document.getElementById('podium-wrap').innerHTML = '';
+  document.getElementById('my-rank-banner').className = 'my-rank-banner hidden';
+  loadLeaderboard(tab);
+}
+
+async function loadLeaderboard(tab) {
+  // Build date filter for monthly
+  let dateFilter = null;
+  if (tab === 'monthly') {
+    const now = new Date();
+    dateFilter = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  }
+
+  // Get all passed progress rows (optionally filtered by month)
+  let query = sb.from('progress')
+    .select('student_id, belt, passed, updated_at')
+    .eq('passed', true);
+
+  if (dateFilter) {
+    query = query.gte('updated_at', dateFilter);
+  }
+
+  const { data: progressRows, error } = await query;
+
+  if (error || !progressRows) {
+    document.getElementById('lb-content').className = 'lb-empty';
+    document.getElementById('lb-content').textContent = 'Could not load rankings.';
+    return;
+  }
+
+  if (progressRows.length === 0) {
+    document.getElementById('podium-wrap').innerHTML = '';
+    document.getElementById('lb-content').className = 'lb-empty';
+    document.getElementById('lb-content').textContent = 'No belts earned yet this period. Be the first!';
+    return;
+  }
+
+  // Count belts per student
+  const beltCounts = {};
+  const beltBreakdown = {}; // student_id -> {white:N, yellow:N, ...}
+  for (const row of progressRows) {
+    if (!beltCounts[row.student_id]) {
+      beltCounts[row.student_id] = 0;
+      beltBreakdown[row.student_id] = {};
+    }
+    beltCounts[row.student_id]++;
+    beltBreakdown[row.student_id][row.belt] = (beltBreakdown[row.student_id][row.belt] || 0) + 1;
+  }
+
+  // Sort by belt count desc
+  const ranked = Object.entries(beltCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([sid, count], i) => ({ rank: i+1, student_id: sid, belts: count, breakdown: beltBreakdown[sid] }));
+
+  // Get profiles for names
+  const studentIds = ranked.map(r => r.student_id);
+  const { data: profiles } = await sb.from('profiles')
+    .select('id, full_name')
+    .in('id', studentIds);
+
+  const nameMap = {};
+  for (const p of (profiles || [])) {
+    nameMap[p.id] = p.full_name;
+  }
+
+  // Find current user's rank
+  const myEntry = ranked.find(r => r.student_id === user.id);
+
+  // Render podium (top 3)
+  renderPodium(ranked.slice(0, 3), nameMap);
+
+  // Render my rank banner
+  if (myEntry) {
+    document.getElementById('my-rank-banner').className = 'my-rank-banner anim-rise anim-rise-2';
+    document.getElementById('my-rank-num').textContent = '#' + myEntry.rank;
+    document.getElementById('my-rank-belts').textContent = myEntry.belts + ' belt' + (myEntry.belts !== 1 ? 's' : '') + ' earned';
+  }
+
+  // Render table
+  renderTable(ranked, nameMap);
+}
+
+function getInitials(nameOrEmail) {
+  if (!nameOrEmail) return '??';
+  const parts = nameOrEmail.split(/[\s@._]+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return parts[0].slice(0, 2).toUpperCase();
+}
+
+function getDisplayName(sid, nameMap) {
+  const raw = nameMap[sid] || '';
+  if (raw) return raw;
+  return 'Student';
+}
+
+function renderPodium(top3, nameMap) {
+  if (top3.length === 0) { document.getElementById('podium-wrap').innerHTML = ''; return; }
+
+  // Reorder for podium display: 2nd, 1st, 3rd
+  const slots = [];
+  if (top3[1]) slots.push({ ...top3[1], rankClass: 'rank-2', label: '2', blockLabel: '2nd' });
+  if (top3[0]) slots.push({ ...top3[0], rankClass: 'rank-1', label: '👑', blockLabel: '1st' });
+  if (top3[2]) slots.push({ ...top3[2], rankClass: 'rank-3', label: '3', blockLabel: '3rd' });
+
+  document.getElementById('podium-wrap').innerHTML = `
+    <div class="podium">
+      ${slots.map(s => `
+        <div class="podium-slot ${s.rankClass}">
+          <div class="podium-avatar">${getInitials(getDisplayName(s.student_id, nameMap))}</div>
+          <div class="podium-name">${escHtml(getDisplayName(s.student_id, nameMap))}${s.student_id === user.id ? ' <span style="color:var(--gold);font-size:9px;">(you)</span>' : ''}</div>
+          <div class="podium-score">${s.belts} belt${s.belts !== 1 ? 's' : ''}</div>
+          <div class="podium-block">${s.blockLabel}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderTable(ranked, nameMap) {
+  if (ranked.length === 0) {
+    document.getElementById('lb-content').className = 'lb-empty';
+    document.getElementById('lb-content').textContent = 'No data yet.';
+    return;
+  }
+
+  const rows = ranked.map(entry => {
+    const isMe = entry.student_id === user.id;
+    const name = getDisplayName(entry.student_id, nameMap);
+    const beltDots = BELT_ORDER.map(b => {
+      const count = entry.breakdown[b] || 0;
+      return count > 0 ? `<div class="mini-belt-dot" style="background:${BELT_COLORS[b]};border-color:${BELT_COLORS[b]};" title="${count} ${b} belt${count>1?'s':''}"></div>` : '';
+    }).join('');
+
+    return `<tr class="${isMe ? 'is-me' : ''}">
+      <td><div class="rank-num ${entry.rank <= 3 ? 'top3' : ''}">#${entry.rank}</div></td>
+      <td>
+        <span class="player-name">${escHtml(name)}</span>
+        ${isMe ? '<span class="player-you">YOU</span>' : ''}
+      </td>
+      <td class="right"><div class="belt-dots-row">${beltDots}</div></td>
+      <td class="right"><div class="belt-count">${entry.belts}</div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('lb-content').outerHTML = `
+    <table class="lb-table" id="lb-content">
+      <thead>
+        <tr>
+          <th style="width:48px;">Rank</th>
+          <th>Student</th>
+          <th class="right">Belts</th>
+          <th class="right" style="width:60px;">Total</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function signOut() { await sb.auth.signOut(); window.location.href='login.html'; }
+
+init();
+</script>
+</body>
+</html>

@@ -26,6 +26,41 @@
   border:1px solid transparent;
 }
 
+/* Mission briefing screen */
+.briefing-card{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:8px;padding:36px 32px;text-align:center;
+  animation:rise 0.4s forwards;
+}
+.briefing-tag{
+  font-family:var(--font-display);font-size:9px;font-weight:700;
+  letter-spacing:0.16em;color:var(--gold);
+  background:var(--gold-dim);border:1px solid rgba(201,169,110,0.2);
+  border-radius:20px;padding:4px 14px;display:inline-block;margin-bottom:20px;
+}
+.briefing-icon{font-size:48px;margin-bottom:16px;}
+.briefing-chapter{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text);letter-spacing:0.04em;margin-bottom:6px;}
+.briefing-belt{font-family:var(--font-mono);font-size:11px;color:var(--text3);letter-spacing:0.08em;margin-bottom:24px;}
+.briefing-scenario{
+  background:var(--bg3);border-left:3px solid var(--gold);
+  border-radius:0 6px 6px 0;padding:16px 20px;
+  margin:0 0 28px;text-align:left;
+  font-size:14px;color:var(--text2);line-height:1.8;
+}
+.briefing-meta{
+  display:flex;justify-content:center;gap:20px;
+  font-family:var(--font-mono);font-size:11px;color:var(--text3);
+  margin-bottom:28px;flex-wrap:wrap;
+}
+.briefing-meta span{display:flex;align-items:center;gap:5px;}
+.briefing-start-btn{
+  font-family:var(--font-display);font-size:11px;font-weight:700;
+  letter-spacing:0.1em;text-transform:uppercase;
+  background:var(--gold);color:#111318;border:none;border-radius:6px;
+  padding:14px 40px;cursor:pointer;transition:all 0.15s;
+}
+.briefing-start-btn:hover{background:var(--gold2);}
+
 /* Question card */
 .question-card{
   background:var(--bg2);border:1px solid var(--border2);
@@ -58,16 +93,8 @@
 }
 .choice-btn:hover:not(:disabled){border-color:var(--gold);background:var(--bg4);}
 .choice-btn:disabled{cursor:not-allowed;}
-.choice-btn.correct{
-  border-color:var(--teal)!important;
-  background:rgba(45,212,160,0.08)!important;
-  color:var(--teal)!important;
-}
-.choice-btn.wrong{
-  border-color:var(--red)!important;
-  background:rgba(255,85,85,0.06)!important;
-  color:var(--red)!important;
-}
+.choice-btn.correct{border-color:var(--teal)!important;background:rgba(45,212,160,0.08)!important;color:var(--teal)!important;}
+.choice-btn.wrong{border-color:var(--red)!important;background:rgba(255,85,85,0.06)!important;color:var(--red)!important;}
 .choice-letter{
   width:26px;height:26px;border-radius:50%;
   border:1px solid currentColor;
@@ -154,7 +181,7 @@
 
   <!-- Loading state -->
   <div class="quiz-loading" id="state-loading">
-    <div class="quiz-loading-text">⚡ LOADING QUESTIONS...</div>
+    <div class="quiz-loading-text">⚡ LOADING MISSION...</div>
   </div>
 
   <!-- Empty state -->
@@ -163,6 +190,23 @@
     <h3>No Questions Yet</h3>
     <p>There are no questions for this chapter and belt level yet.<br>Your teacher will add questions soon.</p>
     <a href="app.html" class="btn btn-ghost" style="display:inline-flex;margin-top:20px;">← Back to Dashboard</a>
+  </div>
+
+  <!-- Mission Briefing state (shows before quiz starts) -->
+  <div id="state-briefing" style="display:none;">
+    <div class="briefing-card">
+      <div class="briefing-tag">📡 INCOMING TRANSMISSION</div>
+      <div class="briefing-icon" id="briefing-icon">📚</div>
+      <div class="briefing-chapter" id="briefing-chapter">Chapter</div>
+      <div class="briefing-belt" id="briefing-belt">— White Belt —</div>
+      <div class="briefing-scenario" id="briefing-scenario" style="display:none;"></div>
+      <div class="briefing-meta">
+        <span>📝 <span id="briefing-q-count">10</span> questions</span>
+        <span>🎯 Pass at 85%</span>
+        <span>⚡ 5 XP per correct answer</span>
+      </div>
+      <button class="briefing-start-btn" onclick="startQuiz()">BEGIN MISSION →</button>
+    </div>
   </div>
 
   <!-- Quiz state -->
@@ -194,7 +238,7 @@
     <div class="results-screen">
       <div class="results-icon" id="results-icon">🥋</div>
       <div class="results-score" id="results-score">0%</div>
-      <div class="results-label">QUIZ COMPLETE</div>
+      <div class="results-label">MISSION COMPLETE</div>
       <div class="results-verdict" id="results-verdict">—</div>
       <div class="results-breakdown">
         <div class="results-stat"><div class="results-stat-num" id="res-correct">0</div><div class="results-stat-label">Correct</div></div>
@@ -205,7 +249,7 @@
       <div id="belt-unlock-msg" style="display:none;background:rgba(45,212,160,0.08);border:1px solid rgba(45,212,160,0.2);border-radius:6px;padding:16px;margin-bottom:24px;font-family:var(--font-mono);font-size:12px;color:var(--teal);line-height:1.7;"></div>
       <div class="results-actions">
         <a href="app.html" class="btn btn-ghost">← Dashboard</a>
-        <button class="btn btn-ghost" onclick="retakeQuiz()">Retake Quiz ↺</button>
+        <button class="btn btn-ghost" onclick="retakeQuiz()">Retry Mission ↺</button>
         <button class="btn btn-gold" id="next-belt-btn" style="display:none;" onclick="goNextBelt()">Next Belt →</button>
       </div>
     </div>
@@ -223,13 +267,13 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const BELT_ORDER = ['white','yellow','orange','blue','brown','black'];
 const BELT_COLORS = {white:'#f0f0f0',yellow:'#f5c842',orange:'#f5852a',blue:'#4a90d9',brown:'#a0623a',black:'#888888'};
 const BELT_LABELS = {white:'White Belt',yellow:'Yellow Belt',orange:'Orange Belt',blue:'Blue Belt',brown:'Brown Belt',black:'Black Belt'};
-const PASS_THRESHOLD = 85; // % to pass
+const ICONS = {'g11-q1-kinematics':'🏃','g11-q2-dynamics':'💪','g11-q3-energy':'⚡','g11-q3-waves':'〰️','g11-q4-thermo':'🌡️','g12-q1-em':'🔌','g12-q2-optics':'💡','g12-q3-modern':'⚛️'};
+const PASS_THRESHOLD = 85;
 const QUESTIONS_PER_QUIZ = 10;
 
-// URL params
-const params = new URLSearchParams(window.location.search);
-const chapterId = params.get('chapter');
-const belt = params.get('belt') || 'white';
+const urlParams = new URLSearchParams(window.location.search);
+const chapterId = urlParams.get('chapter');
+const belt = urlParams.get('belt') || 'white';
 
 let user, questions=[], sessionQuestions=[], currentIdx=0, correct=0, answered=false;
 let chapterData = null;
@@ -244,17 +288,13 @@ async function init() {
 }
 
 async function loadQuiz() {
-  // Load chapter info
   const { data: ch } = await sb.from('chapters').select('*').eq('id', chapterId).single();
   chapterData = ch;
 
-  // Update nav
   if (ch) {
-    document.getElementById('nav-chapter-belt').textContent =
-      `${ch.title} — ${BELT_LABELS[belt]}`;
+    document.getElementById('nav-chapter-belt').textContent = `${ch.title} — ${BELT_LABELS[belt]}`;
   }
 
-  // Load questions for this chapter + belt
   const { data: qs } = await sb.from('questions')
     .select('*')
     .eq('chapter_id', chapterId)
@@ -265,12 +305,32 @@ async function loadQuiz() {
     return;
   }
 
-  // Shuffle and pick up to QUESTIONS_PER_QUIZ
   questions = shuffle(qs).slice(0, QUESTIONS_PER_QUIZ);
-
-  // Generate session questions (resolve template params)
   sessionQuestions = questions.map(q => generateQuestion(q));
 
+  // Show mission briefing before quiz starts
+  renderBriefing();
+  show('briefing');
+}
+
+// ── BRIEFING ──
+function renderBriefing() {
+  const icon = ICONS[chapterId] || '📚';
+  const color = BELT_COLORS[belt] || '#888';
+  document.getElementById('briefing-icon').textContent = icon;
+  document.getElementById('briefing-chapter').textContent = chapterData?.title || 'Chapter';
+  document.getElementById('briefing-belt').innerHTML =
+    `<span style="color:${color};font-weight:700;">${BELT_LABELS[belt]}</span>`;
+  document.getElementById('briefing-q-count').textContent = sessionQuestions.length;
+
+  if (chapterData?.scenario) {
+    const el = document.getElementById('briefing-scenario');
+    el.textContent = chapterData.scenario;
+    el.style.display = 'block';
+  }
+}
+
+function startQuiz() {
   show('quiz');
   renderBeltBadge();
   renderQuestion();
@@ -278,7 +338,6 @@ async function loadQuiz() {
 
 // ── QUESTION ENGINE ──
 function generateQuestion(q) {
-  // Resolve random params
   const resolvedParams = {};
   const params = q.params || {};
   for (const [key, cfg] of Object.entries(params)) {
@@ -291,18 +350,15 @@ function generateQuestion(q) {
     }
   }
 
-  // Calculate correct answer
   let correctAnswer = null;
-  let correctValue = null;
   if (q.correct_expr) {
     try {
       const fn = new Function(...Object.keys(resolvedParams), `return ${q.correct_expr}`);
-      correctValue = fn(...Object.values(resolvedParams));
-      correctAnswer = Math.round(correctValue * 100) / 100;
+      const val = fn(...Object.values(resolvedParams));
+      correctAnswer = Math.round(val * 100) / 100;
     } catch(e) { console.warn('Error computing answer:', e); }
   }
 
-  // Generate distractor values
   const distractors = (q.distractor_exprs || []).map(expr => {
     try {
       const fn = new Function(...Object.keys(resolvedParams), `return ${expr}`);
@@ -311,23 +367,17 @@ function generateQuestion(q) {
     } catch(e) { return null; }
   }).filter(v => v !== null && v !== correctAnswer && !isNaN(v));
 
-  // Build choices array (correct + up to 3 distractors, shuffled)
   const wrongChoices = shuffle(distractors).slice(0, 3);
   const allChoices = shuffle([correctAnswer, ...wrongChoices]);
-
-  // Fill template
-  const filledTemplate = fillTemplate(q.template, resolvedParams, correctAnswer);
-  const filledExplanation = fillTemplate(q.explanation || '', resolvedParams, correctAnswer);
-  const filledFormula = q.formula ? fillTemplate(q.formula, resolvedParams, correctAnswer) : '';
 
   return {
     ...q,
     resolvedParams,
     correctAnswer,
     allChoices,
-    filledTemplate,
-    filledExplanation,
-    filledFormula,
+    filledTemplate: fillTemplate(q.template, resolvedParams, correctAnswer),
+    filledExplanation: fillTemplate(q.explanation || '', resolvedParams, correctAnswer),
+    filledFormula: q.formula ? fillTemplate(q.formula, resolvedParams, correctAnswer) : '',
   };
 }
 
@@ -370,7 +420,6 @@ function renderQuestion() {
   document.getElementById('question-num').textContent = `Question ${currentIdx + 1}`;
   document.getElementById('question-text').textContent = q.filledTemplate;
 
-  // Formula
   const fbox = document.getElementById('formula-box');
   if (q.filledFormula && belt !== 'white') {
     fbox.textContent = '📐 ' + q.filledFormula;
@@ -379,7 +428,6 @@ function renderQuestion() {
     fbox.style.display = 'none';
   }
 
-  // Choices
   const letters = ['A','B','C','D'];
   document.getElementById('choices').innerHTML = q.allChoices.map((choice, i) => `
     <button class="choice-btn" onclick="selectAnswer(${i})" id="choice-${i}">
@@ -387,7 +435,6 @@ function renderQuestion() {
       <span>${choice}</span>
     </button>`).join('');
 
-  // Reset
   document.getElementById('explanation-box').className = 'explanation-box';
   document.getElementById('explanation-box').textContent = '';
   document.getElementById('next-btn').className = 'next-btn';
@@ -404,7 +451,6 @@ function selectAnswer(idx) {
 
   if (isCorrect) correct++;
 
-  // Visual feedback on all buttons
   q.allChoices.forEach((choice, i) => {
     const btn = document.getElementById('choice-' + i);
     btn.disabled = true;
@@ -412,14 +458,12 @@ function selectAnswer(idx) {
     else if (i === idx && !isCorrect) btn.classList.add('wrong');
   });
 
-  // Explanation
   const expBox = document.getElementById('explanation-box');
   if (q.filledExplanation) {
     expBox.textContent = (isCorrect ? '✓ ' : '✗ ') + q.filledExplanation;
     expBox.className = `explanation-box show ${isCorrect ? '' : 'wrong-exp'}`;
   }
 
-  // Next button
   const nextBtn = document.getElementById('next-btn');
   const isLast = currentIdx === sessionQuestions.length - 1;
   nextBtn.textContent = isLast ? 'See Results →' : 'Next Question →';
@@ -431,7 +475,6 @@ function nextQuestion() {
   if (currentIdx >= sessionQuestions.length) {
     showResults();
   } else {
-    // Animate card out and in
     const card = document.getElementById('question-card');
     card.style.opacity = '0';
     card.style.transform = 'translateY(8px)';
@@ -455,19 +498,18 @@ async function showResults() {
   const total = sessionQuestions.length;
   const score = Math.round((correct / total) * 100);
   const passed = score >= PASS_THRESHOLD;
-  const xp = correct * 5;
+  const xpEarned = correct * 5;
 
-  // Save progress to Supabase
-  const attempts = await saveProgress(score, passed);
+  // Save progress + write XP back to profile
+  const attempts = await saveProgress(score, passed, xpEarned);
 
-  // Show results screen
   show('results');
 
   document.getElementById('results-score').textContent = score + '%';
   document.getElementById('results-icon').textContent = passed ? '🥋' : '💪';
   document.getElementById('res-correct').textContent = correct;
   document.getElementById('res-total').textContent = total;
-  document.getElementById('res-xp').textContent = '+' + xp;
+  document.getElementById('res-xp').textContent = '+' + xpEarned;
   document.getElementById('res-attempts').textContent = attempts;
 
   const verdict = document.getElementById('results-verdict');
@@ -475,7 +517,6 @@ async function showResults() {
     verdict.textContent = `✓ BELT PASSED — ${BELT_LABELS[belt]}`;
     verdict.className = 'results-verdict passed';
 
-    // Check if there's a next belt
     const beltIdx = BELT_ORDER.indexOf(belt);
     if (beltIdx < BELT_ORDER.length - 1) {
       const nextBelt = BELT_ORDER[beltIdx + 1];
@@ -490,8 +531,7 @@ async function showResults() {
   }
 }
 
-async function saveProgress(score, passed) {
-  // Get existing progress record
+async function saveProgress(score, passed, xpEarned) {
   const { data: existing } = await sb.from('progress')
     .select('*')
     .eq('student_id', user.id)
@@ -521,6 +561,13 @@ async function saveProgress(score, passed) {
     });
   }
 
+  // Write XP back to profiles (increment)
+  try {
+    const { data: profileData } = await sb.from('profiles').select('xp').eq('id', user.id).single();
+    const currentXp = profileData?.xp || 0;
+    await sb.from('profiles').update({ xp: currentXp + xpEarned }).eq('id', user.id);
+  } catch(e) { console.warn('XP update failed:', e); }
+
   return attempts;
 }
 
@@ -528,8 +575,8 @@ function retakeQuiz() {
   currentIdx = 0;
   correct = 0;
   answered = false;
-  // Re-shuffle and regenerate
   sessionQuestions = shuffle(questions).slice(0, QUESTIONS_PER_QUIZ).map(q => generateQuestion(q));
+  // Show briefing again but skip scenario, go straight to quiz
   show('quiz');
   renderBeltBadge();
   renderQuestion();
@@ -546,6 +593,7 @@ function goNextBelt() {
 function show(state) {
   document.getElementById('state-loading').style.display = state === 'loading' ? 'block' : 'none';
   document.getElementById('state-empty').style.display = state === 'empty' ? 'block' : 'none';
+  document.getElementById('state-briefing').style.display = state === 'briefing' ? 'block' : 'none';
   document.getElementById('state-quiz').style.display = state === 'quiz' ? 'block' : 'none';
   document.getElementById('state-results').style.display = state === 'results' ? 'block' : 'none';
 }
