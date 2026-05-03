@@ -143,6 +143,7 @@
         <span>📝 <span id="briefing-q-count">10</span> questions</span>
         <span>🎯 Pass at 80%</span>
         <span id="briefing-mode-hint">🔤 Multiple choice</span>
+        <span id="briefing-xp-hint">⚡ 5 XP per correct answer</span>
       </div>
       <button class="briefing-start-btn" onclick="startQuiz()">BEGIN MISSION →</button>
     </div>
@@ -232,7 +233,9 @@ const NUMERIC_TOLERANCE = 0.05; // ±5%
 const urlParams = new URLSearchParams(window.location.search);
 const chapterId = urlParams.get('chapter');
 const belt = urlParams.get('belt') || 'white';
+const isPracticeMode = urlParams.get('practice') === '1';
 const isNumericBelt = !MCQ_BELTS.includes(belt);
+const XP_PER_CORRECT = isPracticeMode ? 1 : 5;
 
 let user, questions=[], sessionQuestions=[], currentIdx=0, correct=0, answered=false;
 let chapterData = null;
@@ -276,6 +279,11 @@ function renderBriefing() {
     const el = document.getElementById('briefing-scenario');
     el.textContent = chapterData.scenario;
     el.style.display = 'block';
+  }
+  // Practice mode adjustments
+  if (isPracticeMode) {
+    document.getElementById('briefing-xp-hint').textContent = '⚡ 1 XP per correct (practice)';
+    document.querySelector('.briefing-tag').textContent = '🔁 PRACTICE MODE';
   }
 }
 
@@ -509,7 +517,7 @@ async function showResults() {
   const total = sessionQuestions.length;
   const score = Math.round((correct / total) * 100);
   const passed = score >= PASS_THRESHOLD;
-  const xpEarned = correct * 5;
+  const xpEarned = correct * XP_PER_CORRECT;
   const attempts = await saveProgress(score, passed, xpEarned);
 
   show('results');

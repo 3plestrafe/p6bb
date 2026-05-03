@@ -260,10 +260,22 @@ function renderCard(ch) {
   </div>`;
 }
 
-function openChapter(id) {
+async function openChapter(id) {
   currentChapter = chapters.find(c=>c.id===id);
   if (!currentChapter) return;
+
+  // Always reload fresh progress so belt status is up-to-date
+  await loadProgress();
+
+  // Auto-select the first unpassed belt as the active one
   currentBelt = 'white';
+  for (let i = 0; i < BELTS.length; i++) {
+    const p = getProg(id, BELTS[i].id);
+    if (!p?.passed) { currentBelt = BELTS[i].id; break; }
+    // If all belts passed, land on black
+    if (i === BELTS.length - 1) currentBelt = 'black';
+  }
+
   document.getElementById('modal-icon').textContent = ICONS[id]||'📖';
   document.getElementById('modal-title').textContent = currentChapter.title;
   document.getElementById('modal-meta').textContent = `Grade ${currentChapter.grade} · Quarter ${currentChapter.quarter} · ${currentChapter.deped_code||''}`;
@@ -303,12 +315,16 @@ function renderModalActivities() {
   const attempts = p?.attempts||0;
   const best = Math.round(p?.best_score||0);
   const isBlack = currentBelt==='black';
-  const title = isBlack ? 'Mastery Challenge' : 'Quiz';
+  const alreadyPassed = p?.passed || false;
+  const isPractice = alreadyPassed;
+
+  const title = isBlack ? 'Mastery Challenge' : (isPractice ? 'Quiz — Practice Mode' : 'Quiz');
   const desc = isBlack
     ? `Numeric answers · No hints · ${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%`
     : `10 questions · ${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%`;
-  const xp = isBlack ? '50 XP' : '5 XP per correct answer';
-  const href = `quiz.html?chapter=${currentChapter.id}&belt=${currentBelt}`;
+  const xp = isPractice ? '1 XP per correct (practice)' : (isBlack ? '50 XP' : '5 XP per correct answer');
+  const href = `quiz.html?chapter=${currentChapter.id}&belt=${currentBelt}${isPractice?'&practice=1':''}`;
+
   document.getElementById('modal-activities').innerHTML = `
     <div class="activity-card" onclick="window.location.href='${href}'">
       <div class="act-icon-wrap">📝</div>
@@ -316,7 +332,7 @@ function renderModalActivities() {
         <div class="act-title">${title}</div>
         <div class="act-desc">${desc}</div>
       </div>
-      <div class="act-xp">${xp}</div>
+      <div class="act-xp" style="${isPractice?'color:var(--text3);':''}">${xp}</div>
     </div>`;
 }
 
