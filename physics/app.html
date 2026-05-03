@@ -302,26 +302,22 @@ function renderModalActivities() {
   const p = getProg(currentChapter.id, currentBelt);
   const attempts = p?.attempts||0;
   const best = Math.round(p?.best_score||0);
-  const acts = [
-    { icon:'📝', title: currentBelt==='black'?'Mastery Challenge':'Multiple Choice Quiz',
-      desc: currentBelt==='black'?'Timed · Numeric answers · No hints':`20 questions · ${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%`,
-      xp: currentBelt==='black'?'50 XP':'5 XP each', href:`quiz.html?chapter=${currentChapter.id}&belt=${currentBelt}`, disabled:false },
-    { icon:'🧮', title:'Problem Solving',
-      desc:'Step-by-step problems · Hints available · Show your work',
-      xp:'15 XP each', href:`problems.html?chapter=${currentChapter.id}&belt=${currentBelt}`, disabled:currentBelt==='white' },
-    { icon:'🔬', title:'Physics Simulation',
-      desc:'Interactive virtual lab · Predict · Observe · Explain',
-      xp:'10 XP', href:`sim.html?chapter=${currentChapter.id}`, disabled:false },
-  ];
-  document.getElementById('modal-activities').innerHTML = acts.map(a=>`
-    <div class="activity-card ${a.disabled?'disabled':''}" onclick="${a.disabled?'':` window.location.href='${a.href}'`}">
-      <div class="act-icon-wrap">${a.icon}</div>
+  const isBlack = currentBelt==='black';
+  const title = isBlack ? 'Mastery Challenge' : 'Quiz';
+  const desc = isBlack
+    ? `Numeric answers · No hints · ${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%`
+    : `10 questions · ${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%`;
+  const xp = isBlack ? '50 XP' : '5 XP per correct answer';
+  const href = `quiz.html?chapter=${currentChapter.id}&belt=${currentBelt}`;
+  document.getElementById('modal-activities').innerHTML = `
+    <div class="activity-card" onclick="window.location.href='${href}'">
+      <div class="act-icon-wrap">📝</div>
       <div class="act-info">
-        <div class="act-title">${a.title}</div>
-        <div class="act-desc">${a.desc}</div>
+        <div class="act-title">${title}</div>
+        <div class="act-desc">${desc}</div>
       </div>
-      <div class="act-xp">${a.xp}</div>
-    </div>`).join('');
+      <div class="act-xp">${xp}</div>
+    </div>`;
 }
 
 function renderModalProgress() {
