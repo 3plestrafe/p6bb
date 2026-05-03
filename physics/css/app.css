@@ -284,6 +284,10 @@ body::after{
 .belt-pip-status.passed{color:var(--teal);}
 .belt-pip-status.current{color:var(--gold);}
 .belt-pip-status.locked-s{color:var(--text3);}
+.belt-progress-row.passed-row{cursor:pointer;transition:background 0.15s;}
+.belt-progress-row.passed-row:hover{background:var(--bg3);}
+.belt-progress-row.locked-row{opacity:0.45;cursor:not-allowed;}
+.belt-progress-row.current-row{background:var(--bg3);border-radius:6px;border:1px solid var(--border2);}
 
 /* ── FORMS ── */
 .form-group{margin-bottom:16px;}

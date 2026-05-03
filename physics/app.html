@@ -105,9 +105,6 @@
         <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:var(--gold);margin-bottom:6px;font-family:var(--font-display);">📡 MISSION BRIEFING</div>
         <div id="modal-scenario-text"></div>
       </div>
-      <div class="belt-tabs" id="modal-belt-tabs"></div>
-      <div class="activity-list" id="modal-activities"></div>
-      <div class="belt-progress-title">Belt Progress in this chapter</div>
       <div id="modal-belt-progress"></div>
     </div>
   </div>
@@ -290,68 +287,61 @@ async function openChapter(id) {
     scenarioEl.style.display = 'none';
   }
 
-  renderModalTabs(); renderModalActivities(); renderModalProgress();
+  renderModalProgress();
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
 
-function renderModalTabs() {
-  document.getElementById('modal-belt-tabs').innerHTML = BELTS.map((b,i)=>{
-    const prevPassed = i===0||getProg(currentChapter.id,BELTS[i-1].id)?.passed;
-    const locked = !prevPassed&&i>0;
-    const active = b.id===currentBelt;
-    return `<button class="belt-tab ${active?'active':''} ${locked?'locked-tab':''}"
-      style="${active?`background:${b.color};`+( b.id==='white'?'color:#080808;':'color:#080808;'):''}"
-      onclick="${locked?'':` selectBelt('${b.id}')`}"
-      title="${locked?'Complete previous belt first':b.goal}"
-    >${b.label}</button>`;
-  }).join('');
-}
-
-function selectBelt(id) { currentBelt=id; renderModalTabs(); renderModalActivities(); }
-
-function renderModalActivities() {
-  const p = getProg(currentChapter.id, currentBelt);
-  const attempts = p?.attempts||0;
-  const best = Math.round(p?.best_score||0);
-  const isBlack = currentBelt==='black';
-  const alreadyPassed = p?.passed || false;
-  const isPractice = alreadyPassed;
-
-  const title = isBlack ? 'Mastery Challenge' : (isPractice ? 'Quiz — Practice Mode' : 'Quiz');
-  const desc = isBlack
-    ? `Numeric answers · No hints · ${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%`
-    : `10 questions · ${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%`;
-  const xp = isPractice ? '1 XP per correct (practice)' : (isBlack ? '50 XP' : '5 XP per correct answer');
-  const href = `quiz.html?chapter=${currentChapter.id}&belt=${currentBelt}${isPractice?'&practice=1':''}`;
-
-  document.getElementById('modal-activities').innerHTML = `
-    <div class="activity-card" onclick="window.location.href='${href}'">
-      <div class="act-icon-wrap">📝</div>
-      <div class="act-info">
-        <div class="act-title">${title}</div>
-        <div class="act-desc">${desc}</div>
-      </div>
-      <div class="act-xp" style="${isPractice?'color:var(--text3);':''}">${xp}</div>
-    </div>`;
-}
-
 function renderModalProgress() {
-  document.getElementById('modal-belt-progress').innerHTML = BELTS.map((b,i)=>{
-    const p = getProg(currentChapter.id,b.id);
+  const chId = currentChapter.id;
+  document.getElementById('modal-belt-progress').innerHTML = BELTS.map((b,i) => {
+    const p = getProg(chId, b.id);
     const passed = p?.passed;
-    const attempts = p?.attempts||0;
-    const prevPassed = i===0||getProg(currentChapter.id,BELTS[i-1].id)?.passed;
-    const unlocked = i===0||prevPassed;
-    let txt,cls;
-    if(passed){txt='✓ Passed';cls='passed';}
-    else if(unlocked&&attempts>0){txt=`${attempts} attempt${attempts!==1?'s':''}`;cls='current';}
-    else if(unlocked){txt='Not started';cls='current';}
-    else{txt='Locked';cls='locked-s';}
-    return `<div class="belt-progress-row">
-      <div class="belt-pip-dot" style="background:${unlocked?b.color:'#222'};"></div>
-      <div class="belt-pip-name">${b.label} Belt <span>— ${b.goal}</span></div>
-      <div class="belt-pip-status ${cls}">${txt}</div>
+    const attempts = p?.attempts || 0;
+    const best = Math.round(p?.best_score || 0);
+    const prevPassed = i === 0 || getProg(chId, BELTS[i-1].id)?.passed;
+    const unlocked = i === 0 || prevPassed;
+    const isCurrent = unlocked && !passed;
+    const isBlack = b.id === 'black';
+
+    if (!unlocked) {
+      // Locked belt — greyed out, not clickable
+      return `<div class="belt-progress-row locked-row">
+        <div class="belt-pip-dot" style="background:#2a2a2a;border:1px solid #333;"></div>
+        <div class="belt-pip-name" style="color:var(--text3);">${b.label} Belt <span>— ${b.goal}</span></div>
+        <div class="belt-pip-status locked-s">🔒 Locked</div>
+      </div>`;
+    }
+
+    if (passed) {
+      // Passed belt — clickable for practice
+      const href = `quiz.html?chapter=${chId}&belt=${b.id}&practice=1`;
+      return `<div class="belt-progress-row passed-row" onclick="window.location.href='${href}'" title="Click to practice this belt again">
+        <div class="belt-pip-dot" style="background:${b.color};"></div>
+        <div class="belt-pip-name">${b.label} Belt <span>— ${b.goal}</span></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="belt-pip-status passed">✓ Passed</div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:2px 7px;letter-spacing:0.04em;">PRACTICE</div>
+        </div>
+      </div>`;
+    }
+
+    // Current active belt — show big start button
+    const href = `quiz.html?chapter=${chId}&belt=${b.id}`;
+    const attemptsLabel = attempts > 0 ? `${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%` : 'Not started yet';
+    const xpLabel = isBlack ? '50 XP' : '5 XP per correct answer';
+    return `<div class="belt-progress-row current-row" style="flex-direction:column;align-items:stretch;gap:12px;padding:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="belt-pip-dot" style="background:${b.color};width:14px;height:14px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${b.label} Belt <span style="color:var(--text3);font-size:11px;font-family:var(--font-mono);">— ${b.goal}</span></div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:2px;">${attemptsLabel}</div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--gold);">${xpLabel}</div>
+      </div>
+      <button onclick="window.location.href='${href}'" style="width:100%;padding:12px;background:${b.color};color:#111318;border:none;border-radius:6px;font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+        ${attempts > 0 ? 'Retry Quiz →' : 'Start Quiz →'}
+      </button>
     </div>`;
   }).join('');
 }
