@@ -87,6 +87,20 @@
 .next-btn:hover{background:var(--gold2);}
 .next-btn.show{display:block;}
 
+/* Hint system */
+.hint-wrap{margin-top:14px;}
+.hint-toggle-btn{display:inline-flex;align-items:center;gap:7px;background:none;border:1px solid var(--border2);border-radius:4px;padding:7px 14px;font-family:var(--font-mono);font-size:11px;color:var(--text3);cursor:pointer;transition:all 0.15s;letter-spacing:0.04em;}
+.hint-toggle-btn:hover{border-color:var(--gold);color:var(--gold);}
+.hint-warning{font-family:var(--font-mono);font-size:10px;color:var(--orange,#f5852a);margin-top:6px;padding:6px 10px;background:rgba(245,133,42,0.08);border:1px solid rgba(245,133,42,0.2);border-radius:4px;display:none;line-height:1.6;}
+.hint-warning.show{display:block;}
+.hint-warning-confirm{margin-top:6px;display:flex;gap:8px;}
+.hint-confirm-btn{font-family:var(--font-mono);font-size:10px;padding:4px 12px;border-radius:3px;cursor:pointer;border:1px solid;transition:all 0.15s;}
+.hint-confirm-yes{background:rgba(245,133,42,0.12);color:#f5852a;border-color:rgba(245,133,42,0.3);}
+.hint-confirm-yes:hover{background:rgba(245,133,42,0.22);}
+.hint-confirm-no{background:none;color:var(--text3);border-color:var(--border);}
+.hint-confirm-no:hover{color:var(--text);border-color:var(--border2);}
+.hint-used-label{font-family:var(--font-mono);font-size:10px;color:#f5852a;letter-spacing:0.04em;padding:4px 0;}
+
 /* Results */
 .results-screen{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:40px 32px;text-align:center;animation:rise 0.4s forwards;}
 .results-icon{font-size:52px;margin-bottom:16px;}
@@ -171,6 +185,19 @@
       <div class="question-text" id="question-text"></div>
       <div class="formula-box" id="formula-box" style="display:none;"></div>
 
+      <!-- Hint toggle (orange+ only) -->
+      <div class="hint-wrap" id="hint-wrap" style="display:none;">
+        <button class="hint-toggle-btn" id="hint-toggle-btn" onclick="showHintWarning()">💡 Need a hint?</button>
+        <div class="hint-warning" id="hint-warning">
+          ⚠️ Using this hint will reduce your XP for this question to <strong>1 XP</strong> instead of 5 XP.
+          <div class="hint-warning-confirm">
+            <button class="hint-confirm-btn hint-confirm-yes" onclick="revealHint()">Show hint anyway</button>
+            <button class="hint-confirm-btn hint-confirm-no" onclick="dismissHintWarning()">Never mind</button>
+          </div>
+        </div>
+        <div class="hint-used-label" id="hint-used-label" style="display:none;">💡 Hint used — 1 XP for this question</div>
+      </div>
+
       <!-- MCQ choices -->
       <div class="choices" id="choices"></div>
 
@@ -236,6 +263,7 @@ const belt = urlParams.get('belt') || 'white';
 const isPracticeMode = urlParams.get('practice') === '1';
 const isNumericBelt = !MCQ_BELTS.includes(belt);
 const XP_PER_CORRECT = isPracticeMode ? 1 : 5;
+const XP_WITH_HINT = 1;
 
 let user, questions=[], sessionQuestions=[], currentIdx=0, correct=0, answered=false;
 let chapterData = null;
@@ -284,6 +312,13 @@ function renderBriefing() {
   if (isPracticeMode) {
     document.getElementById('briefing-xp-hint').textContent = '⚡ 1 XP per correct (practice)';
     document.querySelector('.briefing-tag').textContent = '🔁 PRACTICE MODE';
+  } else {
+    const SCAFFOLD_BELTS = ['white', 'yellow'];
+    if (SCAFFOLD_BELTS.includes(belt)) {
+      document.getElementById('briefing-xp-hint').textContent = '⚡ 5 XP per correct answer';
+    } else {
+      document.getElementById('briefing-xp-hint').textContent = '⚡ 5 XP per correct (1 XP if hint used)';
+    }
   }
 }
 
@@ -389,11 +424,31 @@ function renderQuestion() {
   document.getElementById('question-text').textContent = q.filledTemplate;
 
   const fbox = document.getElementById('formula-box');
-  if (q.filledFormula && belt !== 'white') {
+  const hintWrap = document.getElementById('hint-wrap');
+  const hintWarning = document.getElementById('hint-warning');
+  const hintUsedLabel = document.getElementById('hint-used-label');
+  const hintBtn = document.getElementById('hint-toggle-btn');
+
+  const SCAFFOLD_BELTS = ['white', 'yellow'];
+  const showFormulaAutomatically = SCAFFOLD_BELTS.includes(belt);
+
+  if (q.filledFormula) {
     fbox.textContent = '📐 ' + q.filledFormula;
-    fbox.style.display = 'block';
+    if (showFormulaAutomatically) {
+      // White/Yellow: always visible, no hint button
+      fbox.style.display = 'block';
+      hintWrap.style.display = 'none';
+    } else {
+      // Orange+: hide formula, show hint toggle instead
+      fbox.style.display = 'none';
+      hintWrap.style.display = 'block';
+      hintWarning.classList.remove('show');
+      hintBtn.style.display = 'inline-flex';
+      hintUsedLabel.style.display = 'none';
+    }
   } else {
     fbox.style.display = 'none';
+    hintWrap.style.display = 'none';
   }
 
   // Show correct input type
@@ -424,6 +479,26 @@ function renderQuestion() {
   answered = false;
 }
 
+// ── HINT SYSTEM ──
+function showHintWarning() {
+  document.getElementById('hint-warning').classList.add('show');
+}
+
+function dismissHintWarning() {
+  document.getElementById('hint-warning').classList.remove('show');
+}
+
+function revealHint() {
+  const q = sessionQuestions[currentIdx];
+  q.hintUsed = true;
+  // Show formula box
+  document.getElementById('formula-box').style.display = 'block';
+  // Hide the hint button and warning, show "hint used" label
+  document.getElementById('hint-toggle-btn').style.display = 'none';
+  document.getElementById('hint-warning').classList.remove('show');
+  document.getElementById('hint-used-label').style.display = 'block';
+}
+
 // ── MCQ ANSWER ──
 function selectAnswer(idx) {
   if (answered) return;
@@ -432,6 +507,7 @@ function selectAnswer(idx) {
   const selected = q.allChoices[idx];
   const isCorrect = String(selected) === String(q.correctAnswer);
   if (isCorrect) correct++;
+  q.wasCorrect = isCorrect;
 
   q.allChoices.forEach((choice, i) => {
     const btn = document.getElementById('choice-' + i);
@@ -460,6 +536,7 @@ function submitNumeric() {
   const correct_val = q.correctAnswerRaw;
   const tolerance = Math.abs(correct_val) * NUMERIC_TOLERANCE;
   const isCorrect = Math.abs(userVal - correct_val) <= tolerance;
+  q.wasCorrect = isCorrect;
 
   if (isCorrect) {
     correct++;
@@ -517,7 +594,12 @@ async function showResults() {
   const total = sessionQuestions.length;
   const score = Math.round((correct / total) * 100);
   const passed = score >= PASS_THRESHOLD;
-  const xpEarned = correct * XP_PER_CORRECT;
+  // XP is per-question: 1 XP if hint was used, full XP otherwise
+  // We track correctness per question via sessionQuestions[i].wasCorrect set in selectAnswer/submitNumeric
+  const xpEarned = sessionQuestions.reduce((sum, q) => {
+    if (!q.wasCorrect) return sum;
+    return sum + (q.hintUsed ? XP_WITH_HINT : XP_PER_CORRECT);
+  }, 0);
   const attempts = await saveProgress(score, passed, xpEarned);
 
   show('results');
