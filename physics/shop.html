@@ -136,6 +136,8 @@ async function loadData() {
   ]);
   profile = profRes.data || { xp:0, title:'Cadet', bg_active:'bg-default', bg_unlocked:[] };
   if (!profile.bg_unlocked) profile.bg_unlocked = [];
+  // Normalise legacy "default" value stored in DB to "bg-default"
+  if (!profile.bg_active || profile.bg_active === 'default') profile.bg_active = 'bg-default';
   // Default bg is always unlocked
   if (!profile.bg_unlocked.includes('bg-default')) profile.bg_unlocked.push('bg-default');
   shopItems = shopRes.data || [];
