@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Physics Black Belt — Shop</title>
+<link rel="stylesheet" href="css/app.css"/>
+<style>
+.shop-wrap{max-width:760px;margin:0 auto;padding:32px 24px 80px;position:relative;z-index:1;}
+.shop-header{margin-bottom:28px;}
+.shop-title{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--text);letter-spacing:0.04em;margin-bottom:4px;}
+.shop-sub{font-family:var(--font-mono);font-size:11px;color:var(--text3);letter-spacing:0.06em;}
+.shop-xp-bar{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:13px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:6px 16px;letter-spacing:0.04em;margin-top:12px;}
+
+.shop-section-title{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin:32px 0 14px;}
+
+/* Background cards grid */
+.bg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:32px;}
+.bg-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color 0.15s;cursor:default;}
+.bg-card.equipped{border-color:var(--gold);}
+.bg-card.equipped .bg-card-footer{background:var(--gold-dim);}
+.bg-preview{height:100px;position:relative;}
+.bg-card-footer{padding:12px 14px;border-top:1px solid var(--border);}
+.bg-card-name{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text);letter-spacing:0.04em;margin-bottom:3px;}
+.bg-card-desc{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.5;}
+.bg-card-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.bg-cost{font-family:var(--font-mono);font-size:11px;color:var(--gold);}
+.bg-cost.free{color:var(--teal);}
+.equipped-label{font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--gold);text-transform:uppercase;}
+
+/* Title section */
+.titles-list{display:flex;flex-direction:column;gap:8px;margin-bottom:32px;}
+.title-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px 18px;transition:border-color 0.15s;}
+.title-row.earned{border-color:rgba(45,212,160,0.25);}
+.title-row.equipped-title{border-color:var(--gold);}
+.title-row-left{display:flex;align-items:center;gap:12px;}
+.title-name{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.04em;}
+.title-req{font-family:var(--font-mono);font-size:10px;color:var(--text3);}
+.title-locked{opacity:0.45;}
+
+/* Confirm modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;width:100%;max-width:420px;transform:translateY(8px);transition:transform 0.2s;}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-hd{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-hd h3{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.04em;}
+.modal-hd button{background:none;border:1px solid var(--border);border-radius:3px;color:var(--text3);padding:5px 9px;cursor:pointer;}
+.modal-bd{padding:24px;font-size:13px;color:var(--text2);line-height:1.7;}
+.modal-ft{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
+  <div class="nav-right">
+    <div id="nav-xp-badge" style="display:none;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:4px 12px;letter-spacing:0.04em;">
+      ⚡ <span id="nav-xp">0</span> XP
+    </div>
+    <a class="nav-btn" href="app.html">← Dashboard</a>
+    <button class="nav-btn" onclick="signOut()">Sign out</button>
+  </div>
+</nav>
+
+<div class="shop-wrap">
+  <div class="shop-header anim-rise anim-rise-1">
+    <div class="shop-title">🛒 COSMETICS SHOP</div>
+    <div class="shop-sub">// spend your hard-earned XP on profile customizations</div>
+    <div class="shop-xp-bar">⚡ <span id="xp-display">0</span> XP available</div>
+  </div>
+
+  <div class="anim-rise anim-rise-2">
+    <div class="shop-section-title">Profile Backgrounds</div>
+    <div class="bg-grid" id="bg-grid">
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--text3);padding:20px;">Loading shop...</div>
+    </div>
+  </div>
+
+  <div class="anim-rise anim-rise-3">
+    <div class="shop-section-title">Titles — earned by reaching XP milestones</div>
+    <div class="titles-list" id="titles-list"></div>
+  </div>
+</div>
+
+<!-- Buy confirm modal -->
+<div class="modal-overlay" id="buy-modal">
+  <div class="modal-box">
+    <div class="modal-hd"><h3>Confirm Purchase</h3><button onclick="closeModal()">✕</button></div>
+    <div class="modal-bd" id="buy-modal-body">Are you sure?</div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" id="buy-confirm-btn">Buy →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://vmhfkqqsrokkehkejxdk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtaGZrcXFzcm9ra2Voa2VqeGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE0MzYsImV4cCI6MjA5MjY5NzQzNn0.6EDkxTi675qEEiz12PzgYty1MmbJdIW2s86PcH2vB0U';
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TITLE_THRESHOLDS = [
+  { title:'Cadet',      xp:0    },
+  { title:'Analyst',    xp:100  },
+  { title:'Physicist',  xp:300  },
+  { title:'Master',     xp:750  },
+  { title:'Sage',       xp:1500 },
+  { title:'Black Belt', xp:3000 },
+];
+
+// SVG pattern previews — pure CSS, no images needed
+const BG_PREVIEWS = {
+  'bg-default': `background:#0d0f14;`,
+  'bg-grid':    `background:#0d0f14; background-image:radial-gradient(circle,#2a2d3a 1px,transparent 1px); background-size:24px 24px;`,
+  'bg-circuit': `background:#0d0f14; background-image:linear-gradient(90deg,#1a1d24 1px,transparent 1px),linear-gradient(#1a1d24 1px,transparent 1px); background-size:32px 32px;`,
+  'bg-plasma':  `background:linear-gradient(135deg,#0d0f14 0%,#1a0a2e 50%,#2d1a0a 100%);`,
+  'bg-void':    `background:radial-gradient(ellipse at center,#0d1a2e 0%,#050508 70%);`,
+};
+
+let user, profile, shopItems = [];
+
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href='login.html'; return; }
+  user = session.user;
+  await loadData();
+}
+
+async function loadData() {
+  const [profRes, shopRes] = await Promise.all([
+    sb.from('profiles').select('xp, title, bg_active, bg_unlocked').eq('id', user.id).single(),
+    sb.from('shop_items').select('*').eq('active', true).order('sort_order'),
+  ]);
+  profile = profRes.data || { xp:0, title:'Cadet', bg_active:'bg-default', bg_unlocked:[] };
+  if (!profile.bg_unlocked) profile.bg_unlocked = [];
+  // Default bg is always unlocked
+  if (!profile.bg_unlocked.includes('bg-default')) profile.bg_unlocked.push('bg-default');
+  shopItems = shopRes.data || [];
+
+  document.getElementById('xp-display').textContent = (profile.xp || 0).toLocaleString();
+  document.getElementById('nav-xp').textContent = (profile.xp || 0).toLocaleString();
+  document.getElementById('nav-xp-badge').style.display = 'flex';
+
+  renderBackgrounds();
+  renderTitles();
+}
+
+function renderBackgrounds() {
+  const bgs = shopItems.filter(i => i.type === 'background');
+  if (!bgs.length) { document.getElementById('bg-grid').innerHTML = '<div style="color:var(--text3);font-family:var(--font-mono);font-size:12px;">No backgrounds available yet.</div>'; return; }
+
+  document.getElementById('bg-grid').innerHTML = bgs.map(item => {
+    const owned = profile.bg_unlocked.includes(item.id);
+    const equipped = profile.bg_active === item.id;
+    const preview = BG_PREVIEWS[item.id] || BG_PREVIEWS['bg-default'];
+    const isFree = item.cost === 0;
+    const canAfford = (profile.xp || 0) >= item.cost;
+
+    let actionHtml = '';
+    if (equipped) {
+      actionHtml = `<span class="equipped-label">✓ Equipped</span>`;
+    } else if (owned || isFree) {
+      actionHtml = `<button class="btn btn-ghost" style="padding:5px 14px;font-size:10px;" onclick="equipBg('${item.id}')">Equip</button>`;
+    } else {
+      actionHtml = `<button class="btn btn-gold" style="padding:5px 14px;font-size:10px;" ${!canAfford?'disabled title="Not enough XP":''} onclick="confirmBuy('${item.id}','${escHtml(item.name)}',${item.cost})">Buy</button>`;
+    }
+
+    return `<div class="bg-card ${equipped?'equipped':''}">
+      <div class="bg-preview" style="${preview}"></div>
+      <div class="bg-card-footer">
+        <div class="bg-card-name">${escHtml(item.name)}</div>
+        <div class="bg-card-desc">${escHtml(item.description||'')}</div>
+        <div class="bg-card-actions">
+          <span class="bg-cost ${isFree?'free':''}">${isFree?'Free':'⚡ '+item.cost+' XP'}</span>
+          ${actionHtml}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTitles() {
+  const currentXp = profile.xp || 0;
+  const currentTitle = profile.title || 'Cadet';
+
+  document.getElementById('titles-list').innerHTML = TITLE_THRESHOLDS.map(t => {
+    const earned = currentXp >= t.xp;
+    const equipped = currentTitle === t.title;
+    return `<div class="title-row ${earned?'earned':''} ${equipped?'equipped-title':''}">
+      <div class="title-row-left ${earned?'':'title-locked'}">
+        <div>
+          <div class="title-name">${t.title}</div>
+          <div class="title-req">${t.xp === 0 ? 'Default — everyone starts here' : '⚡ Requires '+t.xp.toLocaleString()+' XP'}</div>
+        </div>
+      </div>
+      <div>
+        ${equipped
+          ? `<span style="font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--gold);">✓ ACTIVE</span>`
+          : earned
+            ? `<button class="btn btn-ghost" style="padding:5px 14px;font-size:10px;" onclick="equipTitle('${t.title}')">Equip</button>`
+            : `<span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">🔒 Locked</span>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function confirmBuy(id, name, cost) {
+  document.getElementById('buy-modal-body').innerHTML =
+    `Purchase <strong style="color:var(--text);">${name}</strong> for <strong style="color:var(--gold);">⚡ ${cost} XP</strong>?<br><span style="font-family:var(--font-mono);font-size:11px;color:var(--text3);">You have ${(profile.xp||0).toLocaleString()} XP. Remaining after: ${((profile.xp||0)-cost).toLocaleString()} XP.</span>`;
+  document.getElementById('buy-confirm-btn').onclick = () => buyBg(id, cost);
+  document.getElementById('buy-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+async function buyBg(id, cost) {
+  closeModal();
+  const newXp = (profile.xp || 0) - cost;
+  const newUnlocked = [...profile.bg_unlocked, id];
+  await sb.from('profiles').update({ xp: newXp, bg_unlocked: newUnlocked, bg_active: id }).eq('id', user.id);
+  profile.xp = newXp;
+  profile.bg_unlocked = newUnlocked;
+  profile.bg_active = id;
+  document.getElementById('xp-display').textContent = newXp.toLocaleString();
+  document.getElementById('nav-xp').textContent = newXp.toLocaleString();
+  renderBackgrounds();
+}
+
+async function equipBg(id) {
+  await sb.from('profiles').update({ bg_active: id }).eq('id', user.id);
+  profile.bg_active = id;
+  renderBackgrounds();
+}
+
+async function equipTitle(title) {
+  await sb.from('profiles').update({ title }).eq('id', user.id);
+  profile.title = title;
+  renderTitles();
+}
+
+function closeModal() {
+  document.getElementById('buy-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function signOut() { await sb.auth.signOut(); window.location.href='login.html'; }
+
+init();
+</script>
+</body>
+</html>

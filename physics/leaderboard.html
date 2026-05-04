@@ -189,22 +189,26 @@ async function loadLeaderboard(tab) {
     .sort((a, b) => b[1] - a[1])
     .map(([sid, count], i) => ({ rank: i+1, student_id: sid, belts: count, breakdown: beltBreakdown[sid] }));
 
-  // Get profiles for names
+  // Get profiles for names, titles, bg
   const studentIds = ranked.map(r => r.student_id);
   const { data: profiles } = await sb.from('profiles')
-    .select('id, full_name')
+    .select('id, full_name, title, bg_active')
     .in('id', studentIds);
 
   const nameMap = {};
+  const titleMap = {};
+  const bgMap = {};
   for (const p of (profiles || [])) {
     nameMap[p.id] = p.full_name;
+    titleMap[p.id] = p.title || 'Cadet';
+    bgMap[p.id] = p.bg_active || 'bg-default';
   }
 
   // Find current user's rank
   const myEntry = ranked.find(r => r.student_id === user.id);
 
   // Render podium (top 3)
-  renderPodium(ranked.slice(0, 3), nameMap);
+  renderPodium(ranked.slice(0, 3), nameMap, titleMap, bgMap);
 
   // Render my rank banner
   if (myEntry) {
@@ -214,7 +218,7 @@ async function loadLeaderboard(tab) {
   }
 
   // Render table
-  renderTable(ranked, nameMap);
+  renderTable(ranked, nameMap, titleMap);
 }
 
 function getInitials(nameOrEmail) {
@@ -230,10 +234,17 @@ function getDisplayName(sid, nameMap) {
   return 'Student';
 }
 
-function renderPodium(top3, nameMap) {
+const BG_AVATAR_COLORS = {
+  'bg-default': null,
+  'bg-grid':    '#1e2130',
+  'bg-circuit': '#1a1d24',
+  'bg-plasma':  '#2a1040',
+  'bg-void':    '#0d1a2e',
+};
+
+function renderPodium(top3, nameMap, titleMap, bgMap) {
   if (top3.length === 0) { document.getElementById('podium-wrap').innerHTML = ''; return; }
 
-  // Reorder for podium display: 2nd, 1st, 3rd
   const slots = [];
   if (top3[1]) slots.push({ ...top3[1], rankClass: 'rank-2', label: '2', blockLabel: '2nd' });
   if (top3[0]) slots.push({ ...top3[0], rankClass: 'rank-1', label: '👑', blockLabel: '1st' });
@@ -241,17 +252,23 @@ function renderPodium(top3, nameMap) {
 
   document.getElementById('podium-wrap').innerHTML = `
     <div class="podium">
-      ${slots.map(s => `
+      ${slots.map(s => {
+        const bgColor = BG_AVATAR_COLORS[bgMap[s.student_id] || 'bg-default'];
+        const avatarBg = bgColor ? `background:${bgColor}!important;` : '';
+        const playerTitle = titleMap[s.student_id] || 'Cadet';
+        return `
         <div class="podium-slot ${s.rankClass}">
-          <div class="podium-avatar">${getInitials(getDisplayName(s.student_id, nameMap))}</div>
+          <div class="podium-avatar" style="${avatarBg}">${getInitials(getDisplayName(s.student_id, nameMap))}</div>
           <div class="podium-name">${escHtml(getDisplayName(s.student_id, nameMap))}${s.student_id === user.id ? ' <span style="color:var(--gold);font-size:9px;">(you)</span>' : ''}</div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--gold);letter-spacing:0.06em;">${escHtml(playerTitle)}</div>
           <div class="podium-score">${s.belts} belt${s.belts !== 1 ? 's' : ''}</div>
           <div class="podium-block">${s.blockLabel}</div>
-        </div>`).join('')}
+        </div>`;
+      }).join('')}
     </div>`;
 }
 
-function renderTable(ranked, nameMap) {
+function renderTable(ranked, nameMap, titleMap) {
   if (ranked.length === 0) {
     document.getElementById('lb-content').className = 'lb-empty';
     document.getElementById('lb-content').textContent = 'No data yet.';
@@ -261,6 +278,7 @@ function renderTable(ranked, nameMap) {
   const rows = ranked.map(entry => {
     const isMe = entry.student_id === user.id;
     const name = getDisplayName(entry.student_id, nameMap);
+    const playerTitle = titleMap ? (titleMap[entry.student_id] || 'Cadet') : 'Cadet';
     const beltDots = BELT_ORDER.map(b => {
       const count = entry.breakdown[b] || 0;
       return count > 0 ? `<div class="mini-belt-dot" style="background:${BELT_COLORS[b]};border-color:${BELT_COLORS[b]};" title="${count} ${b} belt${count>1?'s':''}"></div>` : '';
@@ -271,6 +289,7 @@ function renderTable(ranked, nameMap) {
       <td>
         <span class="player-name">${escHtml(name)}</span>
         ${isMe ? '<span class="player-you">YOU</span>' : ''}
+        <br><span style="font-family:var(--font-mono);font-size:9px;color:var(--gold);letter-spacing:0.06em;">${escHtml(playerTitle)}</span>
       </td>
       <td class="right"><div class="belt-dots-row">${beltDots}</div></td>
       <td class="right"><div class="belt-count">${entry.belts}</div></td>

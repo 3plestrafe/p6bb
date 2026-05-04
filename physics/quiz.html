@@ -262,7 +262,8 @@ const chapterId = urlParams.get('chapter');
 const belt = urlParams.get('belt') || 'white';
 const isPracticeMode = urlParams.get('practice') === '1';
 const isNumericBelt = !MCQ_BELTS.includes(belt);
-const XP_PER_CORRECT = isPracticeMode ? 1 : 5;
+const XP_BY_BELT = {white:2, yellow:3, orange:5, blue:7, brown:10, black:15};
+const XP_PER_CORRECT = isPracticeMode ? 1 : (XP_BY_BELT[belt] || 5);
 const XP_WITH_HINT = 1;
 
 let user, questions=[], sessionQuestions=[], currentIdx=0, correct=0, answered=false;
@@ -315,9 +316,9 @@ function renderBriefing() {
   } else {
     const SCAFFOLD_BELTS = ['white', 'yellow'];
     if (SCAFFOLD_BELTS.includes(belt)) {
-      document.getElementById('briefing-xp-hint').textContent = '⚡ 5 XP per correct answer';
+      document.getElementById('briefing-xp-hint').textContent = `⚡ ${XP_PER_CORRECT} XP per correct answer`;
     } else {
-      document.getElementById('briefing-xp-hint').textContent = '⚡ 5 XP per correct (1 XP if hint used)';
+      document.getElementById('briefing-xp-hint').textContent = `⚡ ${XP_PER_CORRECT} XP per correct (1 XP if hint used)`;
     }
   }
 }
@@ -642,8 +643,24 @@ async function saveProgress(score, passed, xpEarned) {
   }
 
   try {
-    const { data: profileData } = await sb.from('profiles').select('xp').eq('id', user.id).single();
-    await sb.from('profiles').update({ xp: (profileData?.xp || 0) + xpEarned }).eq('id', user.id);
+    const { data: profileData } = await sb.from('profiles').select('xp, title').eq('id', user.id).single();
+    const newXp = (profileData?.xp || 0) + xpEarned;
+    // Check if a new title is earned
+    const TITLE_THRESHOLDS = [
+      { title:'Cadet',      xp:0    },
+      { title:'Analyst',    xp:100  },
+      { title:'Physicist',  xp:300  },
+      { title:'Master',     xp:750  },
+      { title:'Sage',       xp:1500 },
+      { title:'Black Belt', xp:3000 },
+    ];
+    let newTitle = profileData?.title || 'Cadet';
+    for (const t of TITLE_THRESHOLDS) {
+      if (newXp >= t.xp) newTitle = t.title;
+    }
+    const updatePayload = { xp: newXp };
+    if (newTitle !== (profileData?.title || 'Cadet')) updatePayload.title = newTitle;
+    await sb.from('profiles').update(updatePayload).eq('id', user.id);
   } catch(e) { console.warn('XP update failed:', e); }
 
   return attempts;

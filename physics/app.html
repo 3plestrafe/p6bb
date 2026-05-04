@@ -33,6 +33,7 @@
     <div id="nav-xp-badge" style="display:none;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:4px 12px;letter-spacing:0.04em;">
       ⚡ <span id="nav-xp">0</span> XP
     </div>
+    <a class="nav-btn" href="shop.html" style="text-decoration:none;">🛒 Shop</a>
     <a class="nav-btn" href="leaderboard.html" style="text-decoration:none;">🏆 Ranks</a>
     <div class="nav-user">logged in as <span id="nav-email">—</span></div>
     <button class="nav-btn" onclick="signOut()">Sign out</button>
@@ -44,7 +45,10 @@
   <!-- Hero -->
   <div class="hero-strip anim-rise anim-rise-1">
     <div class="hero-greeting">WELCOME BACK, <em id="greeting-name">PHYSICIST</em></div>
-    <div class="hero-sub" style="margin-top:6px;">// pick a chapter to begin your training session</div>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div class="hero-sub">// pick a chapter to begin your training session</div>
+      <span id="title-badge" style="display:none;font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:3px 12px;"></span>
+    </div>
     <div class="stats-row">
       <div class="stat-chip"><div class="stat-chip-num" id="stat-xp">0</div><div class="stat-chip-label">Total XP</div></div>
       <div class="stat-chip"><div class="stat-chip-num" id="stat-chapters">0</div><div class="stat-chip-label">Unlocked</div></div>
@@ -160,6 +164,23 @@ async function loadProfile() {
   const xp = profile?.xp || 0;
   document.getElementById('nav-xp').textContent = xp.toLocaleString();
   document.getElementById('nav-xp-badge').style.display = 'flex';
+
+  // Show title badge
+  const title = profile?.title || 'Cadet';
+  const titleBadge = document.getElementById('title-badge');
+  titleBadge.textContent = title;
+  titleBadge.style.display = 'inline-block';
+
+  // Apply equipped background
+  const BG_STYLES = {
+    'bg-default': '',
+    'bg-grid':    'background-image:radial-gradient(circle,#2a2d3a 1px,transparent 1px);background-size:24px 24px;',
+    'bg-circuit': 'background-image:linear-gradient(90deg,#1a1d24 1px,transparent 1px),linear-gradient(#1a1d24 1px,transparent 1px);background-size:32px 32px;',
+    'bg-plasma':  'background:linear-gradient(135deg,#0d0f14 0%,#1a0a2e 50%,#2d1a0a 100%);',
+    'bg-void':    'background:radial-gradient(ellipse at center,#0d1a2e 0%,#050508 70%);',
+  };
+  const bgStyle = BG_STYLES[profile?.bg_active || 'bg-default'] || '';
+  if (bgStyle) document.body.setAttribute('style', bgStyle);
 }
 
 async function loadChapters() {
@@ -329,7 +350,8 @@ function renderModalProgress() {
     // Current active belt — show big start button
     const href = `quiz.html?chapter=${chId}&belt=${b.id}`;
     const attemptsLabel = attempts > 0 ? `${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%` : 'Not started yet';
-    const xpLabel = isBlack ? '50 XP' : '5 XP per correct answer';
+    const XP_BY_BELT = {white:2,yellow:3,orange:5,blue:7,brown:10,black:15};
+    const xpLabel = `${XP_BY_BELT[b.id]||5} XP per correct answer`;
     return `<div class="belt-progress-row current-row" style="flex-direction:column;align-items:stretch;gap:12px;padding:16px;">
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="belt-pip-dot" style="background:${b.color};width:14px;height:14px;"></div>
