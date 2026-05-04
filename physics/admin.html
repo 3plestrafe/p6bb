@@ -159,6 +159,18 @@ body{display:flex;flex-direction:column;min-height:100vh;}
     <div class="section-page" id="section-progress">
       <div class="page-header"><div class="page-header-left"><h2>Student Progress</h2><p>Overview of all student activity and belt achievements.</p></div><button class="btn btn-ghost" onclick="exportProgress()">↓ Export CSV</button></div>
       <div class="progress-cards" id="progress-stats"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+        <label style="font-family:var(--font-mono);font-size:11px;color:var(--text3);">Filter by student:</label>
+        <select id="progress-filter-student" onchange="renderProgress()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:11px;padding:5px 10px;outline:none;cursor:pointer;">
+          <option value="">All students</option>
+        </select>
+        <label style="font-family:var(--font-mono);font-size:11px;color:var(--text3);margin-left:8px;">Status:</label>
+        <select id="progress-filter-status" onchange="renderProgress()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:11px;padding:5px 10px;outline:none;cursor:pointer;">
+          <option value="">All</option>
+          <option value="passed">Passed only</option>
+          <option value="failed">Failed only</option>
+        </select>
+      </div>
       <div class="table-wrap"><table class="admin-table"><thead><tr><th>Student</th><th>Chapter</th><th>Belt</th><th>Attempts</th><th>Best Score</th><th>Status</th><th>Last Active</th></tr></thead><tbody id="progress-tbody"></tbody></table></div>
     </div>
 
@@ -181,9 +193,41 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 </div>
 
 <div class="modal-overlay" id="student-modal">
-  <div class="modal-box">
-    <div class="modal-hd"><h3>Add Student to Whitelist</h3><button onclick="closeModal('student-modal')">✕</button></div>
-    <div class="modal-bd"><p style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:16px;line-height:1.7;">Adding an email here allows that student to log in.<br>You still need to create their account in Supabase Auth and give them a password.</p><div class="form-group"><label>Student Email</label><input type="email" id="sm-email" placeholder="student@school.edu.ph"/></div><div id="sm-msg" class="msg"></div></div>
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-hd"><h3>Add New Student</h3><button onclick="closeModal('student-modal')">✕</button></div>
+    <div class="modal-bd">
+      <!-- Step guide -->
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:20px;">
+        <div style="font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.12em;color:var(--gold);margin-bottom:12px;">HOW TO ADD A STUDENT — 3 STEPS</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--gold);flex-shrink:0;width:20px;">1.</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text2);line-height:1.6;"><strong style="color:var(--text);">Enter the email below</strong> and click "Add to Whitelist". This lets them log in.</div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--gold);flex-shrink:0;width:20px;">2.</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text2);line-height:1.6;"><strong style="color:var(--text);">Go to Supabase Auth</strong> → <a href="https://supabase.com/dashboard/project/vmhfkqqsrokkehkejxdk/auth/users" target="_blank" style="color:var(--gold);text-decoration:underline;">Authentication → Users</a> → click <strong style="color:var(--text);">"Invite user"</strong> or <strong style="color:var(--text);">"Add user"</strong> and enter the same email.</div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--gold);flex-shrink:0;width:20px;">3.</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text2);line-height:1.6;"><strong style="color:var(--text);">Set a password</strong> for that user in Supabase (click the user → "Send password reset" or set it manually). Give the student their password.</div>
+          </div>
+        </div>
+        <!-- SQL snippet for setting password manually -->
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-bottom:6px;">Or set password via SQL Editor in Supabase (replace values):</div>
+          <div id="sql-snippet-box" style="background:var(--bg4,#0d0f14);border:1px solid var(--border);border-radius:4px;padding:10px;font-family:var(--font-mono);font-size:11px;color:var(--teal,#3ecfb2);line-height:1.6;cursor:pointer;position:relative;" onclick="copySqlSnippet()" title="Click to copy">
+            <span id="sql-snippet-text">-- paste in Supabase → SQL Editor
+UPDATE auth.users
+SET encrypted_password = crypt('THEIR_PASSWORD', gen_salt('bf'))
+WHERE email = 'STUDENT_EMAIL';</span>
+            <span id="sql-copy-label" style="position:absolute;top:8px;right:10px;font-size:9px;color:var(--text3);">click to copy</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group"><label>Student Email</label><input type="email" id="sm-email" placeholder="student@school.edu.ph"/></div>
+      <div id="sm-msg" class="msg"></div>
+    </div>
     <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('student-modal')">Cancel</button><button class="btn btn-gold" onclick="saveStudent()">Add to Whitelist →</button></div>
   </div>
 </div>
@@ -660,15 +704,37 @@ function renderProgress() {
     <div class="progress-card"><div class="progress-card-num">${totalAttempts}</div><div class="progress-card-label">Total Attempts</div></div>
     <div class="progress-card"><div class="progress-card-num">${progress.length}</div><div class="progress-card-label">Active Records</div></div>
   `;
+
+  // Populate student filter dropdown (preserve current selection)
+  const sel = document.getElementById('progress-filter-student');
+  const currentVal = sel ? sel.value : '';
+  if (sel) {
+    sel.innerHTML = '<option value="">All students</option>' +
+      students.map(s => {
+        const email = s.email || '';
+        const label = email.split('@')[0] + ' (' + email + ')';
+        return `<option value="${s.id}" ${currentVal === s.id ? 'selected' : ''}>${label}</option>`;
+      }).join('');
+  }
+
+  // Apply filters
+  const filterStudent = sel ? sel.value : '';
+  const filterStatus = document.getElementById('progress-filter-status')?.value || '';
+
+  let filtered = progress;
+  if (filterStudent) filtered = filtered.filter(p => p.student_id === filterStudent);
+  if (filterStatus === 'passed') filtered = filtered.filter(p => p.passed);
+  if (filterStatus === 'failed') filtered = filtered.filter(p => !p.passed);
+
   const tbody = document.getElementById('progress-tbody');
-  if (!progress.length) {
-    tbody.innerHTML=`<tr><td colspan="7" style="padding:20px;color:var(--text3);font-family:var(--font-mono);font-size:12px;">No student activity yet.</td></tr>`;
+  if (!filtered.length) {
+    tbody.innerHTML=`<tr><td colspan="7" style="padding:20px;color:var(--text3);font-family:var(--font-mono);font-size:12px;">${progress.length ? 'No records match this filter.' : 'No student activity yet.'}</td></tr>`;
     return;
   }
-  tbody.innerHTML = progress.map(p=>{
-    const profile = profiles.find(pr=>pr.id===p.student_id);
+  tbody.innerHTML = filtered.map(p=>{
+    const prof = profiles.find(pr=>pr.id===p.student_id);
     const ch = chapters.find(c=>c.id===p.chapter_id);
-    const email = profile?.email||'Unknown';
+    const email = prof?.email||'Unknown';
     const name = email.split('@')[0];
     const date = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '—';
     return `<tr><td style="font-size:12px;">${name}<br><span style="font-size:10px;color:var(--text3);font-family:var(--font-mono);">${email}</span></td><td style="font-size:12px;">${ch?.title||p.chapter_id}</td><td><span class="bdot" style="background:${BELT_COLORS[p.belt]||'#555'};border-color:${BELT_COLORS[p.belt]||'#555'};"></span> ${p.belt}</td><td style="font-family:var(--font-mono);font-size:12px;">${p.attempts||0}</td><td style="font-family:var(--font-mono);font-size:12px;">${Math.round(p.best_score||0)}%</td><td><span class="badge ${p.passed?'badge-green':'badge-grey'}">${p.passed?'✓ Passed':'In progress'}</span></td><td style="font-family:var(--font-mono);font-size:11px;">${date}</td></tr>`;
@@ -821,6 +887,15 @@ async function deleteShopItem(id) {
   await sb.from('shop_items').delete().eq('id', id);
   closeModal('confirm-modal');
   await loadAll();
+}
+
+function copySqlSnippet() {
+  const email = document.getElementById('sm-email')?.value?.trim() || 'STUDENT_EMAIL';
+  const text = `-- paste in Supabase → SQL Editor\nUPDATE auth.users\nSET encrypted_password = crypt('THEIR_PASSWORD', gen_salt('bf'))\nWHERE email = '${email}';`;
+  navigator.clipboard.writeText(text).then(() => {
+    const lbl = document.getElementById('sql-copy-label');
+    if (lbl) { lbl.textContent = '✓ copied!'; lbl.style.color = 'var(--teal)'; setTimeout(() => { lbl.textContent = 'click to copy'; lbl.style.color = ''; }, 2000); }
+  });
 }
 
 function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }

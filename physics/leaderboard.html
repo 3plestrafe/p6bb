@@ -85,9 +85,10 @@
     <div class="lb-sub">// ranked by belts earned — keep training to climb the ranks</div>
   </div>
 
-  <div class="lb-tabs anim-rise anim-rise-2">
-    <button class="lb-tab active" onclick="switchTab('monthly')" id="tab-monthly">This Month</button>
-    <button class="lb-tab" onclick="switchTab('alltime')" id="tab-alltime">All Time</button>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;" class="anim-rise anim-rise-2">
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;">ALL TIME</div>
+    <div id="live-dot" style="width:7px;height:7px;border-radius:50%;background:var(--teal,#3ecfb2);animation:pulse 2s infinite;" title="Live updates on"></div>
+    <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);">LIVE</div>
   </div>
 
   <!-- My rank banner -->
@@ -114,50 +115,43 @@
 const SUPABASE_URL = 'https://vmhfkqqsrokkehkejxdk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtaGZrcXFzcm9ra2Voa2VqeGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE0MzYsImV4cCI6MjA5MjY5NzQzNn0.6EDkxTi675qEEiz12PzgYty1MmbJdIW2s86PcH2vB0U';
 const { createClient } = window.supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  realtime: { params: { eventsPerSecond: 10 } }
+});
 
 const BELT_COLORS = {white:'#f0f0f0',yellow:'#f5c842',orange:'#f5852a',blue:'#4a90d9',brown:'#a0623a',black:'#888888'};
 const BELT_ORDER = ['white','yellow','orange','blue','brown','black'];
 
-let user, currentTab = 'monthly';
+let user;
+
+// --- email prefix helper ---
+function emailPrefix(email) {
+  if (!email) return 'Student';
+  return email.split('@')[0];
+}
 
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.href='login.html'; return; }
   user = session.user;
   document.getElementById('nav-email').textContent = user.email || '';
-  await loadLeaderboard('monthly');
+  await loadLeaderboard();
+  subscribeRealtime();
 }
 
-function switchTab(tab) {
-  currentTab = tab;
-  document.getElementById('tab-monthly').className = 'lb-tab' + (tab==='monthly'?' active':'');
-  document.getElementById('tab-alltime').className = 'lb-tab' + (tab==='alltime'?' active':'');
-  document.getElementById('lb-content').className = 'lb-loading';
-  document.getElementById('lb-content').textContent = '⚡ LOADING RANKINGS...';
-  document.getElementById('podium-wrap').innerHTML = '';
-  document.getElementById('my-rank-banner').className = 'my-rank-banner hidden';
-  loadLeaderboard(tab);
+// --- Real-time subscription: re-fetch on any progress change ---
+function subscribeRealtime() {
+  sb.channel('leaderboard-progress')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'progress' }, () => {
+      loadLeaderboard();
+    })
+    .subscribe();
 }
 
-async function loadLeaderboard(tab) {
-  // Build date filter for monthly
-  let dateFilter = null;
-  if (tab === 'monthly') {
-    const now = new Date();
-    dateFilter = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  }
-
-  // Get all passed progress rows (optionally filtered by month)
-  let query = sb.from('progress')
+async function loadLeaderboard() {
+  const { data: progressRows, error } = await sb.from('progress')
     .select('student_id, belt, passed, updated_at')
     .eq('passed', true);
-
-  if (dateFilter) {
-    query = query.gte('updated_at', dateFilter);
-  }
-
-  const { data: progressRows, error } = await query;
 
   if (error || !progressRows) {
     document.getElementById('lb-content').className = 'lb-empty';
@@ -168,13 +162,13 @@ async function loadLeaderboard(tab) {
   if (progressRows.length === 0) {
     document.getElementById('podium-wrap').innerHTML = '';
     document.getElementById('lb-content').className = 'lb-empty';
-    document.getElementById('lb-content').textContent = 'No belts earned yet this period. Be the first!';
+    document.getElementById('lb-content').textContent = 'No belts earned yet. Be the first!';
     return;
   }
 
   // Count belts per student
   const beltCounts = {};
-  const beltBreakdown = {}; // student_id -> {white:N, yellow:N, ...}
+  const beltBreakdown = {};
   for (const row of progressRows) {
     if (!beltCounts[row.student_id]) {
       beltCounts[row.student_id] = 0;
@@ -189,49 +183,42 @@ async function loadLeaderboard(tab) {
     .sort((a, b) => b[1] - a[1])
     .map(([sid, count], i) => ({ rank: i+1, student_id: sid, belts: count, breakdown: beltBreakdown[sid] }));
 
-  // Get profiles for names, titles, bg
+  // Fetch profiles for display name, title, bg
   const studentIds = ranked.map(r => r.student_id);
   const { data: profiles } = await sb.from('profiles')
-    .select('id, full_name, title, bg_active')
+    .select('id, email, full_name, title, bg_active')
     .in('id', studentIds);
 
-  const nameMap = {};
+  const nameMap = {};   // sid -> display name (email prefix fallback)
   const titleMap = {};
   const bgMap = {};
   for (const p of (profiles || [])) {
-    nameMap[p.id] = p.full_name;
+    // Prefer full_name if set, else fall back to email prefix
+    nameMap[p.id] = (p.full_name && p.full_name.trim()) ? p.full_name.trim() : emailPrefix(p.email);
     titleMap[p.id] = p.title || 'Cadet';
     bgMap[p.id] = p.bg_active || 'bg-default';
   }
 
-  // Find current user's rank
   const myEntry = ranked.find(r => r.student_id === user.id);
 
-  // Render podium (top 3)
   renderPodium(ranked.slice(0, 3), nameMap, titleMap, bgMap);
 
-  // Render my rank banner
   if (myEntry) {
     document.getElementById('my-rank-banner').className = 'my-rank-banner anim-rise anim-rise-2';
     document.getElementById('my-rank-num').textContent = '#' + myEntry.rank;
     document.getElementById('my-rank-belts').textContent = myEntry.belts + ' belt' + (myEntry.belts !== 1 ? 's' : '') + ' earned';
+  } else {
+    document.getElementById('my-rank-banner').className = 'my-rank-banner hidden';
   }
 
-  // Render table
   renderTable(ranked, nameMap, titleMap);
 }
 
-function getInitials(nameOrEmail) {
-  if (!nameOrEmail) return '??';
-  const parts = nameOrEmail.split(/[\s@._]+/).filter(Boolean);
+function getInitials(name) {
+  if (!name) return '??';
+  const parts = name.split(/[\s@._]+/).filter(Boolean);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return parts[0].slice(0, 2).toUpperCase();
-}
-
-function getDisplayName(sid, nameMap) {
-  const raw = nameMap[sid] || '';
-  if (raw) return raw;
-  return 'Student';
 }
 
 const BG_AVATAR_COLORS = {
@@ -246,20 +233,21 @@ function renderPodium(top3, nameMap, titleMap, bgMap) {
   if (top3.length === 0) { document.getElementById('podium-wrap').innerHTML = ''; return; }
 
   const slots = [];
-  if (top3[1]) slots.push({ ...top3[1], rankClass: 'rank-2', label: '2', blockLabel: '2nd' });
-  if (top3[0]) slots.push({ ...top3[0], rankClass: 'rank-1', label: '👑', blockLabel: '1st' });
-  if (top3[2]) slots.push({ ...top3[2], rankClass: 'rank-3', label: '3', blockLabel: '3rd' });
+  if (top3[1]) slots.push({ ...top3[1], rankClass: 'rank-2', blockLabel: '2nd' });
+  if (top3[0]) slots.push({ ...top3[0], rankClass: 'rank-1', blockLabel: '1st' });
+  if (top3[2]) slots.push({ ...top3[2], rankClass: 'rank-3', blockLabel: '3rd' });
 
   document.getElementById('podium-wrap').innerHTML = `
     <div class="podium">
       ${slots.map(s => {
         const bgColor = BG_AVATAR_COLORS[bgMap[s.student_id] || 'bg-default'];
         const avatarBg = bgColor ? `background:${bgColor}!important;` : '';
+        const name = nameMap[s.student_id] || 'Student';
         const playerTitle = titleMap[s.student_id] || 'Cadet';
         return `
         <div class="podium-slot ${s.rankClass}">
-          <div class="podium-avatar" style="${avatarBg}">${getInitials(getDisplayName(s.student_id, nameMap))}</div>
-          <div class="podium-name">${escHtml(getDisplayName(s.student_id, nameMap))}${s.student_id === user.id ? ' <span style="color:var(--gold);font-size:9px;">(you)</span>' : ''}</div>
+          <div class="podium-avatar" style="${avatarBg}">${getInitials(name)}</div>
+          <div class="podium-name">${escHtml(name)}${s.student_id === user.id ? ' <span style="color:var(--gold);font-size:9px;">(you)</span>' : ''}</div>
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--gold);letter-spacing:0.06em;">${escHtml(playerTitle)}</div>
           <div class="podium-score">${s.belts} belt${s.belts !== 1 ? 's' : ''}</div>
           <div class="podium-block">${s.blockLabel}</div>
@@ -277,8 +265,8 @@ function renderTable(ranked, nameMap, titleMap) {
 
   const rows = ranked.map(entry => {
     const isMe = entry.student_id === user.id;
-    const name = getDisplayName(entry.student_id, nameMap);
-    const playerTitle = titleMap ? (titleMap[entry.student_id] || 'Cadet') : 'Cadet';
+    const name = nameMap[entry.student_id] || 'Student';
+    const playerTitle = titleMap[entry.student_id] || 'Cadet';
     const beltDots = BELT_ORDER.map(b => {
       const count = entry.breakdown[b] || 0;
       return count > 0 ? `<div class="mini-belt-dot" style="background:${BELT_COLORS[b]};border-color:${BELT_COLORS[b]};" title="${count} ${b} belt${count>1?'s':''}"></div>` : '';
