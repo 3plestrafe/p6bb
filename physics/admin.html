@@ -193,39 +193,29 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 </div>
 
 <div class="modal-overlay" id="student-modal">
-  <div class="modal-box" style="max-width:560px;">
+  <div class="modal-box" style="max-width:480px;">
     <div class="modal-hd"><h3>Add New Student</h3><button onclick="closeModal('student-modal')">✕</button></div>
     <div class="modal-bd">
-      <!-- Step guide -->
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:20px;">
-        <div style="font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.12em;color:var(--gold);margin-bottom:12px;">HOW TO ADD A STUDENT — 2 STEPS</div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--gold);flex-shrink:0;width:20px;">1.</div>
-            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text2);line-height:1.6;"><strong style="color:var(--text);">Enter the email below</strong> and click "Add to Whitelist". This lets the student log in.</div>
-          </div>
-          <div style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--gold);flex-shrink:0;width:20px;">2.</div>
-            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text2);line-height:1.6;">
-              <strong style="color:var(--text);">Go to Supabase</strong> → <a href="https://supabase.com/dashboard/project/vmhfkqqsrokkehkejxdk/auth/users" target="_blank" style="color:var(--gold);text-decoration:underline;">Authentication → Users</a> → click <strong style="color:var(--text);">"Add user" → "Create new user"</strong>. Enter the same email and set a password. Their profile is created automatically. Give them their password.
-            </div>
-          </div>
-        </div>
-        <!-- Quick SQL for setting/resetting a password -->
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
-          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-bottom:6px;">Need to reset a password later? Run this in <a href="https://supabase.com/dashboard/project/vmhfkqqsrokkehkejxdk/sql" target="_blank" style="color:var(--gold);text-decoration:underline;">SQL Editor</a> (click to copy, replace values):</div>
-          <div id="sql-snippet-box" style="background:var(--bg4,#0d0f14);border:1px solid var(--border);border-radius:4px;padding:10px;font-family:var(--font-mono);font-size:11px;color:var(--teal,#3ecfb2);line-height:1.6;cursor:pointer;position:relative;" onclick="copySqlSnippet()" title="Click to copy">
-            <span id="sql-snippet-text">UPDATE auth.users
-SET encrypted_password = crypt('NEW_PASSWORD', gen_salt('bf'))
-WHERE email = 'STUDENT_EMAIL';</span>
-            <span id="sql-copy-label" style="position:absolute;top:8px;right:10px;font-size:9px;color:var(--text3);">click to copy</span>
-          </div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text3);margin-bottom:20px;line-height:1.6;">Creates the student account and grants access in one step. Share the password with the student so they can log in.</div>
+      <div class="form-group"><label>Student Email</label><input type="email" id="sm-email" placeholder="student@school.edu.ph"/></div>
+      <div class="form-group"><label>Temporary Password</label>
+        <div style="position:relative;">
+          <input type="password" id="sm-password" placeholder="Min. 6 characters" style="padding-right:70px;"/>
+          <button type="button" onclick="togglePasswordVisibility()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-family:var(--font-mono);font-size:10px;padding:0;">SHOW</button>
         </div>
       </div>
-      <div class="form-group"><label>Student Email</label><input type="email" id="sm-email" placeholder="student@school.edu.ph"/></div>
+      <!-- Success box — shown after creation -->
+      <div id="sm-success-box" style="display:none;background:rgba(45,212,160,0.08);border:1px solid rgba(45,212,160,0.25);border-radius:6px;padding:14px;margin-top:4px;">
+        <div style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--teal);margin-bottom:8px;">✓ STUDENT CREATED</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text2);line-height:1.8;">
+          Email: <strong id="sm-success-email" style="color:var(--text);"></strong><br>
+          Password: <strong id="sm-success-password" style="color:var(--text);"></strong>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:8px;">Give these credentials to the student. They can log in immediately.</div>
+      </div>
       <div id="sm-msg" class="msg"></div>
     </div>
-    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('student-modal')">Cancel</button><button class="btn btn-gold" onclick="saveStudent()">Add to Whitelist →</button></div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeStudentModal()">Cancel</button><button class="btn btn-gold" id="sm-submit-btn" onclick="saveStudent()">Create Student →</button></div>
   </div>
 </div>
 
@@ -499,17 +489,76 @@ function renderStudents() {
   }).join('');
 }
 
-function openAddStudent() { openModal('student-modal'); }
+const EDGE_FN_URL = 'https://vmhfkqqsrokkehkejxdk.supabase.co/functions/v1/create-students';
+
+function openAddStudent() {
+  // Reset modal state
+  document.getElementById('sm-email').value = '';
+  document.getElementById('sm-password').value = '';
+  document.getElementById('sm-msg').className = 'msg';
+  document.getElementById('sm-success-box').style.display = 'none';
+  document.getElementById('sm-submit-btn').style.display = '';
+  openModal('student-modal');
+}
+
+function closeStudentModal() {
+  closeModal('student-modal');
+  loadAll();
+}
+
+function togglePasswordVisibility() {
+  const input = document.getElementById('sm-password');
+  const btn = input.nextElementSibling;
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = 'HIDE'; }
+  else { input.type = 'password'; btn.textContent = 'SHOW'; }
+}
 
 async function saveStudent() {
   const email = document.getElementById('sm-email').value.trim().toLowerCase();
+  const password = document.getElementById('sm-password').value;
   const msg = document.getElementById('sm-msg');
+  msg.className = 'msg';
+
   if (!email) { msg.textContent='Please enter an email.'; msg.className='msg error show'; return; }
-  if (whitelist.some(w=>w.email===email)) { msg.textContent='This email is already whitelisted.'; msg.className='msg error show'; return; }
-  const { error } = await sb.from('email_whitelist').insert({email});
-  if (error) { msg.textContent='Error: '+error.message; msg.className='msg error show'; return; }
-  msg.textContent='Student added! ✓'; msg.className='msg success show';
-  setTimeout(()=>{ closeModal('student-modal'); loadAll(); }, 800);
+  if (!password || password.length < 6) { msg.textContent='Password must be at least 6 characters.'; msg.className='msg error show'; return; }
+
+  const btn = document.getElementById('sm-submit-btn');
+  btn.textContent = 'Creating...';
+  btn.disabled = true;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(EDGE_FN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    const result = await res.json();
+
+    if (!res.ok || result.error) {
+      msg.textContent = 'Error: ' + (result.error || 'Something went wrong.');
+      msg.className = 'msg error show';
+      btn.textContent = 'Create Student →';
+      btn.disabled = false;
+      return;
+    }
+
+    // Show success box with credentials
+    document.getElementById('sm-success-email').textContent = email;
+    document.getElementById('sm-success-password').textContent = password;
+    document.getElementById('sm-success-box').style.display = 'block';
+    btn.style.display = 'none';
+    document.querySelector('#student-modal .btn-ghost').textContent = 'Done ✓';
+
+  } catch(err) {
+    msg.textContent = 'Network error: ' + err.message;
+    msg.className = 'msg error show';
+    btn.textContent = 'Create Student →';
+    btn.disabled = false;
+  }
 }
 
 function confirmRemoveStudent(email) {
@@ -890,14 +939,6 @@ async function deleteShopItem(id) {
   await loadAll();
 }
 
-function copySqlSnippet() {
-  const email = document.getElementById('sm-email')?.value?.trim() || 'STUDENT_EMAIL';
-  const text = `-- paste in Supabase → SQL Editor\nUPDATE auth.users\nSET encrypted_password = crypt('THEIR_PASSWORD', gen_salt('bf'))\nWHERE email = '${email}';`;
-  navigator.clipboard.writeText(text).then(() => {
-    const lbl = document.getElementById('sql-copy-label');
-    if (lbl) { lbl.textContent = '✓ copied!'; lbl.style.color = 'var(--teal)'; setTimeout(() => { lbl.textContent = 'click to copy'; lbl.style.color = ''; }, 2000); }
-  });
-}
 
 function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
