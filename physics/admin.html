@@ -438,7 +438,7 @@ async function saveChapter() {
 }
 
 function renderMatrix() {
-  const students = profiles.filter(p=>p.role==='student');
+  const students = profiles; // show all users including teacher
   const head = document.getElementById('matrix-head');
   const body = document.getElementById('matrix-body');
   if (!students.length) {
@@ -461,16 +461,19 @@ function renderMatrix() {
 
 function renderStudents() {
   const tbody = document.getElementById('students-tbody');
-  const students = profiles.filter(p => p.role === 'student');
-  if (!students.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="padding:20px;color:var(--text3);font-family:var(--font-mono);font-size:12px;">No students yet.</td></tr>`;
+  if (!profiles.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding:20px;color:var(--text3);font-family:var(--font-mono);font-size:12px;">No users yet.</td></tr>`;
     return;
   }
-  tbody.innerHTML = students.map(s => {
+  // Sort: students first, then teachers
+  const sorted = [...profiles].sort((a,b) => {
+    if (a.role === b.role) return (a.email||'').localeCompare(b.email||'');
+    return a.role === 'student' ? -1 : 1;
+  });
+  tbody.innerHTML = sorted.map(s => {
     const inWhitelist = whitelist.some(w => w.email === s.email);
     const studentProgress = progress.filter(p => p.student_id === s.id);
     const beltsPassed = studentProgress.filter(p => p.passed).length;
-    // Highest belt
     const beltOrder = ['white','yellow','orange','blue','brown','black'];
     let highestBelt = '—';
     for (let i = beltOrder.length-1; i >= 0; i--) {
@@ -480,9 +483,10 @@ function renderStudents() {
     const title = s.title || 'Cadet';
     const email = s.email || '—';
     const beltColor = BELT_COLORS[highestBelt] || null;
-    return `<tr onclick="openStudentEdit('${s.id}')" title="Click to edit student">
+    const isTeacher = s.role === 'teacher';
+    return `<tr onclick="openStudentEdit('${s.id}')" title="Click to edit">
       <td>
-        <div style="color:var(--text);font-size:13px;font-weight:500;">${email.split('@')[0]}</div>
+        <div style="color:var(--text);font-size:13px;font-weight:500;">${email.split('@')[0]}${isTeacher ? ' <span style="font-family:var(--font-mono);font-size:9px;color:var(--teal);background:rgba(62,207,178,0.1);border:1px solid rgba(62,207,178,0.2);border-radius:3px;padding:1px 5px;">ADMIN</span>' : ''}</div>
         <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">${email}</div>
       </td>
       <td><span class="badge badge-gold">${title}</span></td>
@@ -695,7 +699,7 @@ async function deleteQuestion(id) {
 }
 
 function renderProgress() {
-  const students = profiles.filter(p=>p.role==='student');
+  const students = profiles;
   const passed = progress.filter(p=>p.passed).length;
   const totalAttempts = progress.reduce((s,p)=>s+(p.attempts||0),0);
   document.getElementById('progress-stats').innerHTML = `
@@ -705,14 +709,14 @@ function renderProgress() {
     <div class="progress-card"><div class="progress-card-num">${progress.length}</div><div class="progress-card-label">Active Records</div></div>
   `;
 
-  // Populate student filter dropdown (preserve current selection)
+  // Populate student filter dropdown from all profiles (preserve current selection)
   const sel = document.getElementById('progress-filter-student');
   const currentVal = sel ? sel.value : '';
   if (sel) {
     sel.innerHTML = '<option value="">All students</option>' +
-      students.map(s => {
+      profiles.map(s => {
         const email = s.email || '';
-        const label = email.split('@')[0] + ' (' + email + ')';
+        const label = email.split('@')[0] + (s.role === 'teacher' ? ' (admin)' : '');
         return `<option value="${s.id}" ${currentVal === s.id ? 'selected' : ''}>${label}</option>`;
       }).join('');
   }
