@@ -134,16 +134,24 @@ async function loadData() {
     sb.from('profiles').select('xp, title, bg_active, bg_unlocked').eq('id', user.id).single(),
     sb.from('shop_items').select('*').eq('active', true).order('sort_order'),
   ]);
-  profile = profRes.data || { xp:0, title:'Cadet', bg_active:'bg-default', bg_unlocked:[] };
-  if (!profile.bg_unlocked) profile.bg_unlocked = [];
-  // Normalise legacy "default" value stored in DB to "bg-default"
-  if (!profile.bg_active || profile.bg_active === 'default') profile.bg_active = 'bg-default';
-  // Default bg is always unlocked
+
+  // Build profile with safe defaults
+  const raw = profRes.data || {};
+  profile = {
+    xp:          raw.xp          ?? 0,
+    title:       raw.title       || 'Cadet',
+    bg_active:   raw.bg_active   || 'bg-default',
+    bg_unlocked: Array.isArray(raw.bg_unlocked) ? raw.bg_unlocked : [],
+  };
+  // Normalise legacy "default" value stored in DB
+  if (profile.bg_active === 'default') profile.bg_active = 'bg-default';
+  // bg-default is always free/unlocked
   if (!profile.bg_unlocked.includes('bg-default')) profile.bg_unlocked.push('bg-default');
+
   shopItems = shopRes.data || [];
 
-  document.getElementById('xp-display').textContent = (profile.xp || 0).toLocaleString();
-  document.getElementById('nav-xp').textContent = (profile.xp || 0).toLocaleString();
+  document.getElementById('xp-display').textContent = profile.xp.toLocaleString();
+  document.getElementById('nav-xp').textContent = profile.xp.toLocaleString();
   document.getElementById('nav-xp-badge').style.display = 'flex';
 
   renderBackgrounds();
@@ -167,7 +175,7 @@ function renderBackgrounds() {
     } else if (owned || isFree) {
       actionHtml = `<button class="btn btn-ghost" style="padding:5px 14px;font-size:10px;" onclick="equipBg('${item.id}')">Equip</button>`;
     } else {
-      actionHtml = `<button class="btn btn-gold" style="padding:5px 14px;font-size:10px;" ${!canAfford?'disabled title="Not enough XP":''} onclick="confirmBuy('${item.id}','${escHtml(item.name)}',${item.cost})">Buy</button>`;
+      actionHtml = `<button class="btn btn-gold" style="padding:5px 14px;font-size:10px;" ${!canAfford ? 'disabled="disabled" title="Not enough XP"' : ''} onclick="confirmBuy('${item.id}','${escHtml(item.name)}',${item.cost})">Buy</button>`;
     }
 
     return `<div class="bg-card ${equipped?'equipped':''}">
