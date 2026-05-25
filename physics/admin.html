@@ -754,10 +754,13 @@ async function runFormatCheck() {
         // Strip Math.xxx( function calls
         stripped = stripped.replace(/Math\.[a-zA-Z]+\s*\(/g, '(');
         // Build full set of known identifiers: params + common constants
-        const allKnown = [...paramKeys, ...KNOWN_CONSTANTS];
+        // Exclude any single-letter constant that is a letter contained within a multi-char param name
+        // e.g. param "mh" contains "h" — don't let "h" independently trigger the adjacency check
+        const paramLetters = new Set(paramKeys.filter(k=>k.length>1).join('').split(''));
+        const filteredConstants = [...KNOWN_CONSTANTS].filter(c => !paramLetters.has(c));
+        const allKnown = [...paramKeys, ...filteredConstants];
         const sortedKnown = [...new Set(allKnown)].sort((a,b) => b.length - a.length);
-        // Check: two known identifiers directly adjacent with NO operator between them,
-        // using word boundaries so "theta" doesn't match as "h"+"e" inside it
+        // Check: two known identifiers directly adjacent with NO operator between them
         if (sortedKnown.length >= 2) {
           const varPat = sortedKnown.map(k => k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
           const impliedRe = new RegExp(`\\b(${varPat})(${varPat})\\b`);
@@ -780,9 +783,13 @@ async function runFormatCheck() {
         if (checkImpliedMult(expr)) {
           qIssues.push({ sev:'error', msg:`Possible implied multiplication in <code>correct_expr</code>: <em>${expr}</em>` });
         }
-        if (expr.includes('^')) qIssues.push({ sev:'error', msg:`Uses <code>^</code> instead of <code>**</code> or <code>Math.pow()</code> in <code>correct_expr</code>: <em>${expr}</em>` });
-        if (/(?<!Math\.)sqrt\s*\(/.test(expr)) qIssues.push({ sev:'error', msg:`Uses <code>sqrt()</code> without <code>Math.</code> prefix in <code>correct_expr</code>: <em>${expr}</em>` });
-        if (/(?<!Math\.)\b(sin|cos|tan|log|abs)\s*\(/.test(expr)) qIssues.push({ sev:'error', msg:`Uses math function without <code>Math.</code> prefix in <code>correct_expr</code>: <em>${expr}</em>` });
+        // Skip operator/function checks for string literals — they're display text, not evaluated
+        const isStringLiteral = /^['"].*['"]$/.test(expr.trim());
+        if (!isStringLiteral) {
+          if (expr.includes('^')) qIssues.push({ sev:'error', msg:`Uses <code>^</code> instead of <code>**</code> or <code>Math.pow()</code> in <code>correct_expr</code>: <em>${expr}</em>` });
+          if (/(?<!Math\.)sqrt\s*\(/.test(expr)) qIssues.push({ sev:'error', msg:`Uses <code>sqrt()</code> without <code>Math.</code> prefix in <code>correct_expr</code>: <em>${expr}</em>` });
+          if (/(?<!Math\.)\b(sin|cos|tan|log|abs)\s*\(/.test(expr)) qIssues.push({ sev:'error', msg:`Uses math function without <code>Math.</code> prefix in <code>correct_expr</code>: <em>${expr}</em>` });
+        }
         // Params referenced in template but missing from params object —
         // only flag if the variable also appears in correct_expr or distractor_exprs,
         // because that's where an undefined param actually breaks evaluation.
@@ -811,9 +818,12 @@ async function runFormatCheck() {
         } else {
           q.distractor_exprs.forEach((d,i) => {
             if (checkImpliedMult(d)) qIssues.push({ sev:'error', msg:`Distractor ${i+1} possible implied multiplication: <em>${d}</em>` });
-            if (d.includes('^')) qIssues.push({ sev:'error', msg:`Distractor ${i+1} uses <code>^</code> instead of <code>**</code>: <em>${d}</em>` });
-            if (/(?<!Math\.)sqrt\s*\(/.test(d)) qIssues.push({ sev:'error', msg:`Distractor ${i+1} uses bare <code>sqrt()</code>: <em>${d}</em>` });
-            if (/(?<!Math\.)\b(sin|cos|tan|log|abs)\s*\(/.test(d)) qIssues.push({ sev:'error', msg:`Distractor ${i+1} missing <code>Math.</code> prefix: <em>${d}</em>` });
+            const dIsStr = /^['"].*['"]$/.test(d.trim());
+            if (!dIsStr) {
+              if (d.includes('^')) qIssues.push({ sev:'error', msg:`Distractor ${i+1} uses <code>^</code> instead of <code>**</code>: <em>${d}</em>` });
+              if (/(?<!Math\.)sqrt\s*\(/.test(d)) qIssues.push({ sev:'error', msg:`Distractor ${i+1} uses bare <code>sqrt()</code>: <em>${d}</em>` });
+              if (/(?<!Math\.)\b(sin|cos|tan|log|abs)\s*\(/.test(d)) qIssues.push({ sev:'error', msg:`Distractor ${i+1} missing <code>Math.</code> prefix: <em>${d}</em>` });
+            }
           });
         }
       }
