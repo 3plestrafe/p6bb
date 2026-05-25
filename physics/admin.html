@@ -749,23 +749,25 @@ async function runFormatCheck() {
         if (!expr) return false;
         // Skip string literals (e.g. 'distance', "velocity") — valid concept MCQ answers
         if (/^['"].*['"]$/.test(expr.trim())) return false;
-        // Strip Math.xxx( calls first
-        let stripped = expr.replace(/Math\.[a-zA-Z]+\s*\(/g, '(');
+        // Strip Math.PROPERTY references (Math.PI, Math.E, Math.LN2, etc.) — they're constants, not functions
+        let stripped = expr.replace(/Math\.[A-Z_][A-Z0-9_]*/g, '1');
+        // Strip Math.xxx( function calls
+        stripped = stripped.replace(/Math\.[a-zA-Z]+\s*\(/g, '(');
         // Build full set of known identifiers: params + common constants
         const allKnown = [...paramKeys, ...KNOWN_CONSTANTS];
         const sortedKnown = [...new Set(allKnown)].sort((a,b) => b.length - a.length);
-        // Check: two known identifiers directly adjacent with no operator between them
-        // e.g. "at" when params={a,t}, or "mg" when params={m} and g is a known constant
+        // Check: two known identifiers directly adjacent with NO operator between them,
+        // using word boundaries so "theta" doesn't match as "h"+"e" inside it
         if (sortedKnown.length >= 2) {
           const varPat = sortedKnown.map(k => k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
-          const impliedRe = new RegExp(`(${varPat})(${varPat})`);
+          const impliedRe = new RegExp(`\\b(${varPat})(${varPat})\\b`);
           if (impliedRe.test(stripped)) return true;
         }
         // Fallback: after removing all known identifiers and numbers,
-        // flag if two letters are still adjacent (unknown vars like "vt" not in params)
+        // flag if two letters are still adjacent (unknown vars not in params, e.g. "vt")
         let residual = stripped;
         sortedKnown.forEach(k => {
-          residual = residual.replace(new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'g'), ' ');
+          residual = residual.replace(new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\b`, 'g'), ' ');
         });
         residual = residual.replace(/\d+(\.\d+)?/g, ' ');
         return /[a-zA-Z][a-zA-Z]/.test(residual);
@@ -780,11 +782,26 @@ async function runFormatCheck() {
         }
         if (expr.includes('^')) qIssues.push({ sev:'error', msg:`Uses <code>^</code> instead of <code>**</code> or <code>Math.pow()</code> in <code>correct_expr</code>: <em>${expr}</em>` });
         if (/(?<!Math\.)sqrt\s*\(/.test(expr)) qIssues.push({ sev:'error', msg:`Uses <code>sqrt()</code> without <code>Math.</code> prefix in <code>correct_expr</code>: <em>${expr}</em>` });
-        if (/(?<!Math\.)(sin|cos|tan|log|abs)\s*\(/.test(expr)) qIssues.push({ sev:'error', msg:`Uses math function without <code>Math.</code> prefix in <code>correct_expr</code>: <em>${expr}</em>` });
-        // Params referenced in template but missing from params object
+        if (/(?<!Math\.)\b(sin|cos|tan|log|abs)\s*\(/.test(expr)) qIssues.push({ sev:'error', msg:`Uses math function without <code>Math.</code> prefix in <code>correct_expr</code>: <em>${expr}</em>` });
+        // Params referenced in template but missing from params object —
+        // only flag if the variable also appears in correct_expr or distractor_exprs,
+        // because that's where an undefined param actually breaks evaluation.
+        // Variables that only appear in the template text are decorative/narrative (e.g. formula-recognition MCQs).
         const templateVars = [...(q.template||'').matchAll(/\{(\w+)\}/g)].map(m=>m[1]).filter(v=>v!=='answer');
+        // Build a list of only the non-string-literal expressions — string literals won't fail eval
+        // even if they contain variable-looking text like "v - u"
+        const evalExprs = [q.correct_expr||'', ...(q.distractor_exprs||[])]
+          .filter(e => !/^['"].*['"]$/.test(e.trim()));
+        const allEvalExprs = evalExprs.join(' ');
         templateVars.forEach(v => {
-          if (!paramKeys.includes(v)) qIssues.push({ sev:'warn', msg:`Template uses <code>{${v}}</code> but it's not defined in <code>params</code>` });
+          if (!paramKeys.includes(v)) {
+            // Only warn if the variable appears as a whole word in a non-string expression
+            const usedInExpr = new RegExp(`\\b${v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\b`).test(allEvalExprs);
+            if (usedInExpr) {
+              qIssues.push({ sev:'warn', msg:`Template uses <code>{${v}}</code> but it's not defined in <code>params</code> (used in expression — may cause eval error)` });
+            }
+            // else: decorative template var only (formula-recognition MCQ or derived value) — safe
+          }
         });
       }
       // Check distractor_exprs
@@ -796,7 +813,7 @@ async function runFormatCheck() {
             if (checkImpliedMult(d)) qIssues.push({ sev:'error', msg:`Distractor ${i+1} possible implied multiplication: <em>${d}</em>` });
             if (d.includes('^')) qIssues.push({ sev:'error', msg:`Distractor ${i+1} uses <code>^</code> instead of <code>**</code>: <em>${d}</em>` });
             if (/(?<!Math\.)sqrt\s*\(/.test(d)) qIssues.push({ sev:'error', msg:`Distractor ${i+1} uses bare <code>sqrt()</code>: <em>${d}</em>` });
-            if (/(?<!Math\.)(sin|cos|tan|log|abs)\s*\(/.test(d)) qIssues.push({ sev:'error', msg:`Distractor ${i+1} missing <code>Math.</code> prefix: <em>${d}</em>` });
+            if (/(?<!Math\.)\b(sin|cos|tan|log|abs)\s*\(/.test(d)) qIssues.push({ sev:'error', msg:`Distractor ${i+1} missing <code>Math.</code> prefix: <em>${d}</em>` });
           });
         }
       }
@@ -982,7 +999,7 @@ function fixExpression(expr, paramKeys) {
   // Fix bare sqrt( → Math.sqrt(
   fixed = fixed.replace(/(?<!Math\.)sqrt\s*\(/g, 'Math.sqrt(');
   // Fix bare sin/cos/tan/log/abs → Math.xxx(
-  fixed = fixed.replace(/(?<!Math\.)(sin|cos|tan|log|abs)\s*\(/g, 'Math.$1(');
+  fixed = fixed.replace(/(?<!Math\.)\b(sin|cos|tan|log|abs)\s*\(/g, 'Math.$1(');
   // Fix ^ → **
   fixed = fixed.replace(/\^/g, '**');
   // Fix implied multiplication between known param variable names
