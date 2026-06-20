@@ -153,6 +153,11 @@ async function loadProfile() {
   const { data } = await sb.from('profiles').select('*').eq('id', user.id).single();
   profile = data;
   const email = user.email || '';
+  // Self-heal: backfill email into profiles if missing (fixes leaderboard display)
+  if (profile && !profile.email && email) {
+    await sb.from('profiles').update({ email }).eq('id', user.id);
+    profile.email = email;
+  }
   document.getElementById('nav-email').textContent = email;
   const name = email.split('@')[0].replace(/[._]/g,' ').toUpperCase();
   document.getElementById('greeting-name').textContent = name;
