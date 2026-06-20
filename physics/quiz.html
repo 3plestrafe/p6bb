@@ -643,24 +643,8 @@ async function saveProgress(score, passed, xpEarned) {
   }
 
   try {
-    const { data: profileData } = await sb.from('profiles').select('xp, title').eq('id', user.id).single();
-    const newXp = (profileData?.xp || 0) + xpEarned;
-    // Check if a new title is earned
-    const TITLE_THRESHOLDS = [
-      { title:'Cadet',      xp:0    },
-      { title:'Analyst',    xp:100  },
-      { title:'Physicist',  xp:300  },
-      { title:'Master',     xp:750  },
-      { title:'Sage',       xp:1500 },
-      { title:'Black Belt', xp:3000 },
-    ];
-    let newTitle = profileData?.title || 'Cadet';
-    for (const t of TITLE_THRESHOLDS) {
-      if (newXp >= t.xp) newTitle = t.title;
-    }
-    const updatePayload = { xp: newXp };
-    if (newTitle !== (profileData?.title || 'Cadet')) updatePayload.title = newTitle;
-    await sb.from('profiles').update(updatePayload).eq('id', user.id);
+    const { data: rpcResult } = await sb.rpc('award_quiz_xp', { p_amount: xpEarned });
+    if (!rpcResult?.ok) console.warn('XP award failed:', rpcResult?.error);
   } catch(e) { console.warn('XP update failed:', e); }
 
   return attempts;

@@ -85,6 +85,12 @@
     <div class="lb-sub">// ranked by belts earned — keep training to climb the ranks</div>
   </div>
 
+  <!-- Tabs -->
+  <div class="lb-tabs anim-rise anim-rise-2" style="margin-bottom:20px;">
+    <button class="lb-tab active" id="tab-belts" onclick="switchTab('belts')">🥋 Belts</button>
+    <button class="lb-tab" id="tab-fishing" onclick="switchTab('fishing')">🎣 Fishing</button>
+  </div>
+
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;" class="anim-rise anim-rise-2">
     <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;">ALL TIME</div>
     <div id="live-dot" style="width:7px;height:7px;border-radius:50%;background:var(--teal,#3ecfb2);animation:pulse 2s infinite;" title="Live updates on"></div>
@@ -93,7 +99,7 @@
 
   <!-- My rank banner -->
   <div class="my-rank-banner hidden anim-rise anim-rise-2" id="my-rank-banner">
-    <div class="my-rank-left">Your rank this period</div>
+    <div class="my-rank-left" id="my-rank-left">Your rank this period</div>
     <div style="display:flex;align-items:center;gap:12px;">
       <div id="my-rank-belts" style="font-size:12px;color:var(--text2);"></div>
       <div class="my-rank-num" id="my-rank-num">#—</div>
@@ -130,6 +136,20 @@ function emailPrefix(email) {
   return email.split('@')[0].slice(0, 3);
 }
 
+let activeTab = 'belts';
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tab-belts').classList.toggle('active', tab === 'belts');
+  document.getElementById('tab-fishing').classList.toggle('active', tab === 'fishing');
+  document.getElementById('lb-content').className = 'lb-loading';
+  document.getElementById('lb-content').textContent = '⚡ LOADING RANKINGS...';
+  document.getElementById('podium-wrap').innerHTML = '';
+  document.getElementById('my-rank-banner').className = 'my-rank-banner hidden';
+  if (tab === 'belts') loadLeaderboard();
+  else loadFishingLeaderboard();
+}
+
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.href='login.html'; return; }
@@ -139,13 +159,106 @@ async function init() {
   subscribeRealtime();
 }
 
-// --- Real-time subscription: re-fetch on any progress change ---
+// --- Real-time subscription ---
 function subscribeRealtime() {
   sb.channel('leaderboard-progress')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'progress' }, () => {
-      loadLeaderboard();
+      if (activeTab === 'belts') loadLeaderboard();
     })
     .subscribe();
+  sb.channel('leaderboard-fishing')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'fish_catches' }, () => {
+      if (activeTab === 'fishing') loadFishingLeaderboard();
+    })
+    .subscribe();
+}
+
+// --- Fishing leaderboard ---
+async function loadFishingLeaderboard() {
+  const { data: catches, error } = await sb
+    .from('fish_catches')
+    .select('user_id, points')
+    .eq('won', true);
+
+  if (error || !catches) {
+    document.getElementById('lb-content').className = 'lb-empty';
+    document.getElementById('lb-content').textContent = 'Could not load fishing rankings.';
+    return;
+  }
+
+  if (catches.length === 0) {
+    document.getElementById('podium-wrap').innerHTML = '';
+    document.getElementById('lb-content').className = 'lb-empty';
+    document.getElementById('lb-content').textContent = 'No fish caught yet. Be the first!';
+    return;
+  }
+
+  // Aggregate points per user
+  const totals = {};
+  for (const row of catches) {
+    totals[row.user_id] = (totals[row.user_id] || 0) + (row.points || 0);
+  }
+
+  const ranked = Object.entries(totals)
+    .sort((a, b) => b[1] - a[1])
+    .map(([sid, pts], i) => ({ rank: i + 1, student_id: sid, pts }));
+
+  // Fetch profiles
+  const studentIds = ranked.map(r => r.student_id);
+  const { data: profiles } = await sb.from('profiles')
+    .select('id, email, display_name, title, bg_active')
+    .in('id', studentIds);
+
+  const nameMap = {}, titleMap = {}, bgMap = {};
+  for (const p of (profiles || [])) {
+    let name = '';
+    if (p.display_name && p.display_name.trim()) name = p.display_name.trim();
+    else if (p.email) name = emailPrefix(p.email);
+    else name = p.id.slice(0, 3);
+    nameMap[p.id] = name;
+    titleMap[p.id] = p.title || 'Cadet';
+    bgMap[p.id] = p.bg_active || 'bg-default';
+  }
+
+  const myEntry = ranked.find(r => r.student_id === user.id);
+  if (myEntry) {
+    document.getElementById('my-rank-banner').className = 'my-rank-banner anim-rise anim-rise-2';
+    document.getElementById('my-rank-left').textContent = 'Your fishing rank';
+    document.getElementById('my-rank-num').textContent = '#' + myEntry.rank;
+    document.getElementById('my-rank-belts').textContent = myEntry.pts + ' pts';
+  }
+
+  // Podium — reuse existing renderer with pts as "score"
+  const top3 = ranked.slice(0, 3).map(r => ({ ...r, belts: r.pts, breakdown: {} }));
+  renderPodium(top3, nameMap, titleMap, bgMap);
+
+  // Table
+  const rows = ranked.map(entry => {
+    const isMe = entry.student_id === user.id;
+    const name = nameMap[entry.student_id] || entry.student_id.slice(0, 3);
+    const playerTitle = titleMap[entry.student_id] || 'Cadet';
+    return `<tr class="${isMe ? 'is-me' : ''}">
+      <td><div class="rank-num ${entry.rank <= 3 ? 'top3' : ''}">#${entry.rank}</div></td>
+      <td>
+        <span class="player-name">${escHtml(name)}</span>
+        ${isMe ? '<span class="player-you">YOU</span>' : ''}
+        <br><span style="font-family:var(--font-mono);font-size:9px;color:var(--gold);letter-spacing:0.06em;">${escHtml(playerTitle)}</span>
+      </td>
+      <td class="right"><div class="belt-count">${entry.pts}</div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('lb-content').outerHTML = `
+    <table class="lb-table" id="lb-content">
+      <thead>
+        <tr>
+          <th style="width:48px;">Rank</th>
+          <th>Student</th>
+          <th class="right">🎣 Points</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 async function loadLeaderboard() {
@@ -209,6 +322,7 @@ async function loadLeaderboard() {
 
   if (myEntry) {
     document.getElementById('my-rank-banner').className = 'my-rank-banner anim-rise anim-rise-2';
+    document.getElementById('my-rank-left').textContent = 'Your rank this period';
     document.getElementById('my-rank-num').textContent = '#' + myEntry.rank;
     document.getElementById('my-rank-belts').textContent = myEntry.belts + ' belt' + (myEntry.belts !== 1 ? 's' : '') + ' earned';
   } else {
