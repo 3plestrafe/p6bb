@@ -398,12 +398,11 @@ async function init() {
 }
 
 async function loadAll() {
-  const [ch, wl, pr, prog, qc, si] = await Promise.all([
+  const [ch, wl, pr, prog, si] = await Promise.all([
     sb.from('chapters').select('*').order('sort_order'),
     sb.from('email_whitelist').select('*').order('added_at'),
     sb.from('profiles').select('*').order('created_at'),
     sb.from('progress').select('*').order('updated_at', {ascending:false}),
-    sb.from('questions').select('chapter_id, belt', {count:'exact'}).limit(5000),
     sb.from('shop_items').select('*').order('sort_order'),
   ]);
   chapters = ch.data || [];
@@ -412,12 +411,21 @@ async function loadAll() {
   progress = prog.data || [];
   shopItems = si.data || [];
 
-  // Build counts map from lightweight fetch (only chapter_id + belt, no full rows)
-  const qRows = qc.data || [];
-  // Use a fake array sized to the true count for badge display
-  questions = { length: qc.count || qRows.length };
+  // Paginated fetch of chapter_id+belt — bypasses Supabase's 1000-row server cap
+  const PAGE = 1000;
+  let allQRows = [], page = 0, done = false;
+  while (!done) {
+    const { data, error } = await sb.from('questions')
+      .select('chapter_id, belt')
+      .range(page * PAGE, (page + 1) * PAGE - 1);
+    if (error || !data || data.length === 0) { done = true; break; }
+    allQRows = allQRows.concat(data);
+    if (data.length < PAGE) done = true;
+    page++;
+  }
+  questions = { length: allQRows.length };
   questionCounts = {};
-  qRows.forEach(r => {
+  allQRows.forEach(r => {
     if (!questionCounts[r.chapter_id]) questionCounts[r.chapter_id] = {};
     questionCounts[r.chapter_id][r.belt] = (questionCounts[r.chapter_id][r.belt] || 0) + 1;
   });
