@@ -46,7 +46,7 @@
   <div class="hero-strip anim-rise anim-rise-1">
     <div class="hero-greeting">WELCOME BACK, <em id="greeting-name">PHYSICIST</em></div>
     <div style="margin-top:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <div class="hero-sub">// pick a chapter to begin your training session</div>
+      <div class="hero-sub">// pick a topic to begin your training session</div>
       <span id="title-badge" style="display:none;font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:3px 12px;"></span>
     </div>
     <div class="stats-row">
@@ -72,21 +72,11 @@
     <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#888;border:1px solid #555;"></div>Black — Mastery</div>
   </div>
 
-  <!-- Grade 11 -->
+  <!-- Chapters -->
   <div class="anim-rise anim-rise-3">
-    <div class="section-header">
-      <span class="section-label">Grade 11 — SHS STEM Physics</span>
-      <div class="section-line"></div>
-    </div>
     <div class="chapters-grid" id="grid-g11"></div>
   </div>
-
-  <!-- Grade 12 -->
   <div class="anim-rise anim-rise-4">
-    <div class="section-header" style="margin-top:28px;">
-      <span class="section-label">Grade 12 — SHS STEM Physics</span>
-      <div class="section-line"></div>
-    </div>
     <div class="chapters-grid" id="grid-g12"></div>
   </div>
 
@@ -276,7 +266,6 @@ function renderCard(ch) {
   return `<div class="chapter-card ${locked?'locked':''}" onclick="${locked?'':` openChapter('${ch.id}')`}">
     <div class="chapter-top">
       <div class="chapter-icon">${icon}</div>
-      <div class="chapter-quarter">Q${ch.quarter}</div>
     </div>
     <div class="chapter-title">${ch.title}</div>
     <div class="chapter-desc">${ch.deped_code||''}</div>
@@ -303,7 +292,7 @@ async function openChapter(id) {
 
   document.getElementById('modal-icon').textContent = ICONS[id]||'📖';
   document.getElementById('modal-title').textContent = currentChapter.title;
-  document.getElementById('modal-meta').textContent = `Grade ${currentChapter.grade} · Quarter ${currentChapter.quarter} · ${currentChapter.deped_code||''}`;
+  document.getElementById('modal-meta').textContent = currentChapter.deped_code||'';
 
   // Show scenario if available
   const scenarioEl = document.getElementById('modal-scenario');
@@ -334,7 +323,7 @@ function renderModalProgress() {
 
     if (!unlocked) {
       // Locked belt — greyed out, not clickable
-      return `<div class="belt-progress-row locked-row">
+      return `<div class="belt-progress-row locked-row" style="border-left:3px solid #2a2a2a;">
         <div class="belt-pip-dot" style="background:#2a2a2a;border:1px solid #333;"></div>
         <div class="belt-pip-name" style="color:var(--text3);">${b.label} Belt <span>— ${b.goal}</span></div>
         <div class="belt-pip-status locked-s">🔒 Locked</div>
@@ -344,12 +333,12 @@ function renderModalProgress() {
     if (passed) {
       // Passed belt — clickable for practice
       const href = `quiz.html?chapter=${chId}&belt=${b.id}&practice=1`;
-      return `<div class="belt-progress-row passed-row" onclick="window.location.href='${href}'" title="Click to practice this belt again">
+      return `<div class="belt-progress-row passed-row" style="border-left:3px solid ${b.color};">
         <div class="belt-pip-dot" style="background:${b.color};"></div>
         <div class="belt-pip-name">${b.label} Belt <span>— ${b.goal}</span></div>
         <div style="display:flex;align-items:center;gap:10px;">
           <div class="belt-pip-status passed">✓ Passed</div>
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:2px 7px;letter-spacing:0.04em;">PRACTICE</div>
+          <button onclick="event.stopPropagation();window.location.href='${href}'" style="font-family:var(--font-mono);font-size:9px;color:${b.color};background:transparent;border:1px solid ${b.color};border-radius:3px;padding:3px 8px;letter-spacing:0.04em;cursor:pointer;transition:background 0.15s,color 0.15s;" onmouseover="this.style.background='${b.color}';this.style.color='#111318';" onmouseout="this.style.background='transparent';this.style.color='${b.color}';">↺ Practice</button>
         </div>
       </div>`;
     }
@@ -359,7 +348,7 @@ function renderModalProgress() {
     const attemptsLabel = attempts > 0 ? `${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%` : 'Not started yet';
     const XP_BY_BELT = {white:2,yellow:3,orange:5,blue:7,brown:10,black:15};
     const xpLabel = `${XP_BY_BELT[b.id]||5} XP per correct answer`;
-    return `<div class="belt-progress-row current-row" style="flex-direction:column;align-items:stretch;gap:12px;padding:16px;">
+    return `<div class="belt-progress-row current-row" style="flex-direction:column;align-items:stretch;gap:12px;padding:16px;border-left:3px solid ${b.color};">
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="belt-pip-dot" style="background:${b.color};width:14px;height:14px;"></div>
         <div style="flex:1;">
@@ -369,7 +358,7 @@ function renderModalProgress() {
         <div style="font-family:var(--font-mono);font-size:10px;color:var(--gold);">${xpLabel}</div>
       </div>
       <button onclick="window.location.href='${href}'" style="width:100%;padding:12px;background:${b.color};color:#111318;border:none;border-radius:6px;font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-        ${attempts > 0 ? 'Retry Quiz →' : 'Start Quiz →'}
+        ${attempts > 0 ? 'Retry Training →' : 'Start Training →'}
       </button>
     </div>`;
   }).join('');
