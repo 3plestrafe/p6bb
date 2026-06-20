@@ -273,10 +273,12 @@ body::after{
   margin:20px 0 10px;
 }
 .belt-progress-row{
-  display:flex;align-items:center;gap:10px;
-  padding:9px 0;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;
+  margin-bottom:6px;
+  border-radius:0 6px 6px 0;
+  border-left:3px solid transparent;
 }
-.belt-progress-row:last-child{border-bottom:none;}
 .belt-pip-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
 .belt-pip-name{font-size:12px;color:var(--text2);flex:1;font-family:var(--font-body);}
 .belt-pip-name span{color:var(--text3);font-size:11px;font-family:var(--font-mono);}
@@ -286,8 +288,8 @@ body::after{
 .belt-pip-status.locked-s{color:var(--text3);}
 .belt-progress-row.passed-row{cursor:pointer;transition:background 0.15s;}
 .belt-progress-row.passed-row:hover{background:var(--bg3);}
-.belt-progress-row.locked-row{opacity:0.45;cursor:not-allowed;}
-.belt-progress-row.current-row{background:var(--bg3);border-radius:6px;border:1px solid var(--border2);}
+.belt-progress-row.locked-row{opacity:0.55;cursor:not-allowed;}
+.belt-progress-row.current-row{background:var(--bg3);border-radius:0 6px 6px 0;margin:10px 0;}
 
 /* ── FORMS ── */
 .form-group{margin-bottom:16px;}
