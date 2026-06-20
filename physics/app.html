@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Physics Black Belt — Dashboard</title>
-<link rel="stylesheet" href="css/app.css?v=0.11"/>
+<link rel="stylesheet" href="css/app.css?v=0.12"/>
 </head>
 <body>
 
@@ -73,7 +73,7 @@
   </div>
 
   <!-- Version -->
-  <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:0.08em;margin-bottom:12px;">v0.11</div>
+  <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:0.08em;margin-bottom:12px;">v0.12</div>
 
   <!-- Chapters -->
   <div class="anim-rise anim-rise-3">
@@ -97,10 +97,13 @@
       <button class="modal-close" onclick="closeModalDirect()">✕</button>
     </div>
     <div class="modal-body">
-      <!-- Scenario mission briefing -->
-      <div id="modal-scenario" style="display:none;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.2);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:16px;font-family:var(--font-mono);font-size:12px;color:var(--text2);line-height:1.7;">
-        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:var(--gold);margin-bottom:6px;font-family:var(--font-display);">📡 MISSION BRIEFING</div>
-        <div id="modal-scenario-text"></div>
+      <!-- Scenario mission briefing — collapsed by default -->
+      <div id="modal-scenario" style="display:none;margin-bottom:12px;">
+        <button onclick="toggleScenario()" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.2);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;padding:8px 12px;cursor:pointer;text-align:left;">
+          <span style="font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.12em;color:var(--gold);">📡 MISSION BRIEFING</span>
+          <span id="scenario-chevron" style="font-family:var(--font-mono);font-size:10px;color:var(--gold);">▼</span>
+        </button>
+        <div id="modal-scenario-text" style="display:none;background:rgba(201,169,110,0.04);border:1px solid rgba(201,169,110,0.15);border-top:none;border-radius:0 0 4px 4px;padding:12px 14px;font-family:var(--font-mono);font-size:11px;color:var(--text2);line-height:1.7;"></div>
       </div>
       <div id="modal-belt-progress"></div>
     </div>
@@ -365,6 +368,14 @@ function renderModalProgress() {
       </button>
     </div>`;
   }).join('');
+}
+
+function toggleScenario() {
+  const text = document.getElementById('modal-scenario-text');
+  const chevron = document.getElementById('scenario-chevron');
+  const open = text.style.display === 'block';
+  text.style.display = open ? 'none' : 'block';
+  chevron.textContent = open ? '▼' : '▲';
 }
 
 function closeModal(e) { if(e.target===document.getElementById('modal-overlay')) closeModalDirect(); }
