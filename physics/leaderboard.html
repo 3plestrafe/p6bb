@@ -193,8 +193,12 @@ async function loadLeaderboard() {
   const titleMap = {};
   const bgMap = {};
   for (const p of (profiles || [])) {
-    // Prefer full_name if set, else fall back to email prefix
-    nameMap[p.id] = (p.full_name && p.full_name.trim()) ? p.full_name.trim() : emailPrefix(p.email);
+    // Prefer full_name → email prefix → first 8 chars of uuid
+    let name = '';
+    if (p.full_name && p.full_name.trim()) name = p.full_name.trim();
+    else if (p.email) name = emailPrefix(p.email);
+    else name = p.id.slice(0, 8);
+    nameMap[p.id] = name;
     titleMap[p.id] = p.title || 'Cadet';
     bgMap[p.id] = p.bg_active || 'bg-default';
   }
@@ -242,7 +246,7 @@ function renderPodium(top3, nameMap, titleMap, bgMap) {
       ${slots.map(s => {
         const bgColor = BG_AVATAR_COLORS[bgMap[s.student_id] || 'bg-default'];
         const avatarBg = bgColor ? `background:${bgColor}!important;` : '';
-        const name = nameMap[s.student_id] || 'Student';
+        const name = nameMap[s.student_id] || s.student_id.slice(0, 8);
         const playerTitle = titleMap[s.student_id] || 'Cadet';
         return `
         <div class="podium-slot ${s.rankClass}">
@@ -265,7 +269,7 @@ function renderTable(ranked, nameMap, titleMap) {
 
   const rows = ranked.map(entry => {
     const isMe = entry.student_id === user.id;
-    const name = nameMap[entry.student_id] || 'Student';
+    const name = nameMap[entry.student_id] || entry.student_id.slice(0, 8);
     const playerTitle = titleMap[entry.student_id] || 'Cadet';
     const beltDots = BELT_ORDER.map(b => {
       const count = entry.breakdown[b] || 0;
