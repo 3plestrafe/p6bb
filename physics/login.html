@@ -60,11 +60,38 @@ body{display:flex;align-items:center;justify-content:center;overflow:hidden;}
       </div>
     </div>
     <button class="btn btn-gold" id="submit-btn" onclick="doLogin()" style="width:100%;justify-content:center;margin-top:4px;">Sign In →</button>
+    <div style="text-align:center;margin-top:12px;">
+      <button type="button" onclick="toggleForgot()" style="background:none;border:none;color:#555;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.05em;text-decoration:underline;padding:0;">Forgot password?</button>
+    </div>
+
+    <!-- Forgot password panel -->
+    <div id="forgot-panel" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#555;margin-bottom:10px;line-height:1.6;">Enter your email and we'll send you a reset link.</div>
+      <div class="form-group" style="margin-bottom:8px;">
+        <input type="email" id="reset-email" placeholder="yourname@school.edu.ph" style="width:100%;"/>
+      </div>
+      <button class="btn btn-gold" id="reset-btn" onclick="doReset()" style="width:100%;justify-content:center;">Send Reset Link →</button>
+    </div>
+
     <div class="divider"><span>need access?</span></div>
     <p style="font-size:11px;color:#444;font-family:'IBM Plex Mono',monospace;line-height:1.7;text-align:center;">
       Your teacher will provide your login credentials.<br>
       Contact your teacher if you cannot access your account.
     </p>
+  </div>
+
+  <!-- New password panel (shown after clicking reset link in email) -->
+  <div class="card" id="new-password-card" style="display:none;margin-top:16px;">
+    <div class="card-title">Set New Password</div>
+    <div id="np-msg" class="msg"></div>
+    <div class="form-group">
+      <label>New Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="new-password-input" placeholder="Min. 6 characters"/>
+        <button class="pw-toggle" onclick="toggleNewPw()" type="button">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-gold" id="np-btn" onclick="doSetPassword()" style="width:100%;justify-content:center;">Set Password →</button>
   </div>
   <a class="back-link" href="/index.html">← Back to bryanvincentking.com</a>
 </div>
@@ -79,6 +106,39 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 function showMsg(t,type){const b=document.getElementById('msg-box');b.textContent=t;b.className='msg '+type+' show';}
 function togglePw(){const i=document.getElementById('password-input');i.type=i.type==='password'?'text':'password';}
 
+function toggleForgot(){
+  const p=document.getElementById('forgot-panel');
+  p.style.display=p.style.display==='none'?'block':'none';
+  if(p.style.display==='block') document.getElementById('reset-email').focus();
+}
+
+async function doReset(){
+  const email=document.getElementById('reset-email').value.trim().toLowerCase();
+  const btn=document.getElementById('reset-btn');
+  if(!email){showMsg('Please enter your email address first.','error');return;}
+  btn.disabled=true;btn.textContent='Sending...';
+  const {error}=await sb.auth.resetPasswordForEmail(email,{
+    redirectTo: window.location.origin+window.location.pathname
+  });
+  if(error){showMsg('Could not send reset email: '+error.message,'error');btn.disabled=false;btn.textContent='Send Reset Link →';return;}
+  showMsg('Reset link sent! Check your email inbox.','success');
+  btn.textContent='Sent ✓';
+}
+
+function toggleNewPw(){const i=document.getElementById('new-password-input');i.type=i.type==='password'?'text':'password';}
+
+async function doSetPassword(){
+  const pw=document.getElementById('new-password-input').value;
+  const btn=document.getElementById('np-btn');
+  const msg=document.getElementById('np-msg');
+  if(!pw||pw.length<6){msg.textContent='Password must be at least 6 characters.';msg.className='msg error show';return;}
+  btn.disabled=true;btn.textContent='Saving...';
+  const {error}=await sb.auth.updateUser({password:pw});
+  if(error){msg.textContent='Error: '+error.message;msg.className='msg error show';btn.disabled=false;btn.textContent='Set Password →';return;}
+  msg.textContent='Password updated! Signing you in...';msg.className='msg success show';
+  setTimeout(()=>window.location.href='app.html',1500);
+}
+
 async function doLogin(){
   const email=document.getElementById('email-input').value.trim().toLowerCase();
   const password=document.getElementById('password-input').value;
@@ -91,6 +151,14 @@ async function doLogin(){
 }
 
 (async()=>{
+  // Check if this is a password reset redirect (Supabase puts #access_token in URL)
+  const hash = window.location.hash;
+  if(hash.includes('type=recovery')){
+    // Hide login card, show new password card
+    document.querySelector('.card').style.display='none';
+    document.getElementById('new-password-card').style.display='block';
+    return;
+  }
   const {data:{session}}=await sb.auth.getSession();
   if(session) window.location.href='app.html';
 })();
