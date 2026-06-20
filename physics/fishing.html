@@ -16,8 +16,12 @@
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;}
 
 /* ── Nav ── */
-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);}
-.nav-title{font-family:var(--mono);font-size:14px;color:var(--gold);letter-spacing:0.06em;}
+nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--gold);letter-spacing:0.06em;text-decoration:none;}
+.nav-logo em{font-style:normal;color:var(--text);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.nav-btn{background:none;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:5px 12px;font-size:11px;font-family:var(--mono);cursor:pointer;text-decoration:none;letter-spacing:0.04em;transition:border-color .15s;}
+.nav-btn:hover{border-color:rgba(255,255,255,0.3);}
 .coll-xp-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:7px 10px;background:var(--surface2);border:1px solid rgba(201,169,110,0.18);border-radius:8px;}
 .coll-xp-label{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:0.06em;}
 .coll-xp-val{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--gold);}
@@ -205,8 +209,15 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:12px 2
 </head>
 <body>
 
-<nav>
-  <div class="nav-title">🎣 Physics Black Belt — Fishing</div>
+<nav class="nav">
+  <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
+  <div class="nav-right">
+    <div id="nav-xp-badge" style="display:none;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:4px 12px;letter-spacing:0.04em;">
+      ⚡ <span id="nav-xp">0</span> XP
+    </div>
+    <a class="nav-btn" href="app.html" style="text-decoration:none;">← Dashboard</a>
+    <button class="nav-btn" onclick="signOut()">Sign out</button>
+  </div>
 </nav>
 
 <div class="main-scroll">
@@ -220,7 +231,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:12px 2
         <div class="coll-total-label">total points</div>
         <div class="coll-xp-row">
           <span class="coll-xp-label">⚡ XP</span>
-          <span class="coll-xp-val" id="nav-xp">0</span>
+          <span class="coll-xp-val" id="coll-xp-val">0</span>
         </div>
       </div>
       <div class="coll-list" id="coll-list"></div>
@@ -467,9 +478,21 @@ async function boot() {
   if (!session) { window.location.href='login.html'; return; }
   currentUser = session.user;
 
-  // Load real XP
-  const { data: profile } = await sb.from('profiles').select('xp').eq('id', currentUser.id).single();
+  // Load profile (XP + background)
+  const { data: profile } = await sb.from('profiles').select('xp, bg_active').eq('id', currentUser.id).single();
   currentXP = profile?.xp ?? 0;
+
+  // Apply equipped background
+  const BG_STYLES = {
+    'bg-default': '',
+    'bg-grid':    'background-image:radial-gradient(circle,#2a2d3a 1px,transparent 1px);background-size:24px 24px;',
+    'bg-circuit': 'background-image:linear-gradient(90deg,#1a1d24 1px,transparent 1px),linear-gradient(#1a1d24 1px,transparent 1px);background-size:32px 32px;',
+    'bg-plasma':  'background:linear-gradient(135deg,#0d0f14 0%,#1a0a2e 50%,#2d1a0a 100%);',
+    'bg-void':    'background:radial-gradient(ellipse at center,#0d1a2e 0%,#050508 70%);',
+  };
+  const bgKey = profile?.bg_active || 'bg-default';
+  const bgStyle = BG_STYLES[bgKey] || '';
+  if (bgStyle) document.body.setAttribute('style', bgStyle);
 
   updateXPDisplay();
   renderLocations();
@@ -481,7 +504,15 @@ async function boot() {
 }
 
 function updateXPDisplay() {
-  document.getElementById('nav-xp').textContent = currentXP.toLocaleString();
+  const xpStr = currentXP.toLocaleString();
+  document.getElementById('nav-xp').textContent = xpStr;
+  document.getElementById('coll-xp-val').textContent = xpStr;
+  document.getElementById('nav-xp-badge').style.display = 'flex';
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
 }
 function showToast(msg) {
   const t=document.getElementById('xp-toast');
