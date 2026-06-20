@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Physics Black Belt — Leaderboard</title>
+<title>Physics Black Belt - Leaderboard</title>
 <link rel="stylesheet" href="css/app.css"/>
 <style>
 .lb-wrap{max-width:680px;margin:0 auto;padding:32px 24px 80px;position:relative;z-index:1;}
@@ -72,7 +72,7 @@
 <nav class="nav">
   <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
   <div class="nav-right">
-    <div class="nav-user">logged in as <span id="nav-email">—</span></div>
+    <div class="nav-user">logged in as <span id="nav-email">-</span></div>
     <a class="nav-btn" href="app.html">← Dashboard</a>
     <button class="nav-btn" onclick="signOut()">Sign out</button>
   </div>
@@ -82,7 +82,7 @@
 
   <div class="lb-header anim-rise anim-rise-1">
     <div class="lb-title">🏆 LEADERBOARD</div>
-    <div class="lb-sub">// ranked by belts earned — keep training to climb the ranks</div>
+    <div class="lb-sub">// ranked by belts earned - keep training to climb the ranks</div>
   </div>
 
   <!-- Tabs -->
@@ -102,7 +102,7 @@
     <div class="my-rank-left" id="my-rank-left">Your rank this period</div>
     <div style="display:flex;align-items:center;gap:12px;">
       <div id="my-rank-belts" style="font-size:12px;color:var(--text2);"></div>
-      <div class="my-rank-num" id="my-rank-num">#—</div>
+      <div class="my-rank-num" id="my-rank-num">#-</div>
     </div>
   </div>
 
@@ -130,7 +130,7 @@ const BELT_ORDER = ['white','yellow','orange','blue','brown','black'];
 
 let user;
 
-// --- email prefix helper — first 3 chars before @ ---
+// --- email prefix helper - first 3 chars before @ ---
 function emailPrefix(email) {
   if (!email) return '';
   return email.split('@')[0].slice(0, 3);
@@ -228,7 +228,7 @@ async function loadFishingLeaderboard() {
     document.getElementById('my-rank-belts').textContent = myEntry.pts + ' pts';
   }
 
-  // Podium — reuse existing renderer with pts as "score"
+  // Podium - reuse existing renderer with pts as "score"
   const top3 = ranked.slice(0, 3).map(r => ({ ...r, belts: r.pts, breakdown: {} }));
   renderPodium(top3, nameMap, titleMap, bgMap);
 

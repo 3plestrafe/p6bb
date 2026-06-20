@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Physics Black Belt — Fishing</title>
+<title>Physics Black Belt - Fishing</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -38,7 +38,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 
 /* ── Window body: fixed layout so HOLD button never moves ── */
 .window-body{padding:16px 20px;display:grid;grid-template-rows:auto auto auto 1fr;gap:12px;}
-/* The selector block and minigame panel share the same grid row — minigame overlays the selectors */
+/* The selector block and minigame panel share the same grid row - minigame overlays the selectors */
 .selector-block{display:flex;flex-direction:column;gap:12px;}
 .mg-anchor{position:relative;}
 .mg-panel{display:none;flex-direction:column;gap:7px;}
@@ -149,7 +149,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 .collection-wrap{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;}
 .coll-header{margin-bottom:10px;}
 .coll-title{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;}
-/* Total pts — playful rounded glow */
+/* Total pts - playful rounded glow */
 .coll-total-display{
   font-family:'Segoe UI Rounded','Segoe UI',system-ui,sans-serif;
   font-size:28px;font-weight:800;
@@ -295,7 +295,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
                 <div class="fish-dot" id="fish-dot">🐠</div>
               </div>
               <div class="bar-labels"><span>← Line snaps</span><span>Caught! →</span></div>
-              <div class="fish-status-label" id="fish-status-label">⚡ Full energy — watch out!</div>
+              <div class="fish-status-label" id="fish-status-label">⚡ Full energy - watch out!</div>
               <!-- hidden stat elements kept for JS compatibility -->
               <div style="display:none">
                 <div id="stam-bar"></div><div id="stam-val"></div>
@@ -580,7 +580,7 @@ function updateCastBtn() {
   if(currentXP<bait.xpCost){
     btn.disabled=true;hint.textContent='';
     warn.style.display='block';
-    warn.textContent=`Not enough XP — need ${bait.xpCost} (you have ${currentXP})`;
+    warn.textContent=`Not enough XP - need ${bait.xpCost} (you have ${currentXP})`;
     return;
   }
   btn.disabled=false;
@@ -598,7 +598,7 @@ async function startCast() {
   document.getElementById('btn-cast').disabled=true;
   document.getElementById('selector-block').style.display='none';
 
-  // Call server-side RPC — deducts XP + rolls fish
+  // Call server-side RPC - deducts XP + rolls fish
   const { data, error } = await sb.rpc('cast_rod', {
     p_bait_id: selBait,
     p_location_id: selLocation,
@@ -622,7 +622,7 @@ async function startCast() {
   showToast(`-${bait.xpCost} XP`);
   updateCastBtn();
 
-  // Store server result — revealed after minigame
+  // Store server result - revealed after minigame
   currentCastId = data.cast_id;
   currentItem = {
     id:     data.fish_id,
@@ -700,7 +700,7 @@ function openMinigame() {
   zoneSpd=0; stamina=mgCfg.stamMax; tension=0; momentum=0;
   isHolding=false; firstContact=false;
 
-  document.getElementById('fish-dot').textContent='🐠'; // always generic — reveal on catch
+  document.getElementById('fish-dot').textContent='🐠'; // always generic - reveal on catch
   document.getElementById('fish-zone').style.width=(mgCfg.zoneWidth*100)+'%';
   document.getElementById('mg-fish-name').textContent=`${currentItem.emoji} ${currentItem.name}`;
   const statusEl=document.getElementById('fish-status-label');
@@ -710,7 +710,7 @@ function openMinigame() {
   document.getElementById('mg-anchor').style.display='block';
   document.getElementById('mg-panel').classList.add('active');
 
-  // 0.5s grace — panel + HOLD button visible before physics starts
+  // 0.5s grace - panel + HOLD button visible before physics starts
   mgActive=false; lastTs=null; burstState='resting';
   setTimeout(()=>{
     mgActive=true;
@@ -821,17 +821,17 @@ function updateMgUI(isGreen,inZone,inDanger) {
   else if(inDanger) {badge.textContent='DANGER!';    badge.className='state-badge s-free';}
   else              {badge.textContent='FREE';        badge.className='state-badge s-free';}
 
-  // Fish status label — based on stamina %
+  // Fish status label - based on stamina %
   const sp=(stamina/cfg.stamMax)*100;
   const statusEl=document.getElementById('fish-status-label');
   if(statusEl){
     let label,color;
-    if(sp<=5)        {label='😵 Exhausted — barely fighting';  color='#4ade80';}
-    else if(sp<=20)  {label='😮‍💨 Tired — slowing down';         color='#86efac';}
-    else if(sp<=40)  {label='😤 Weakening — keep reeling';     color='#fbbf24';}
+    if(sp<=5)        {label='😵 Exhausted - barely fighting';  color='#4ade80';}
+    else if(sp<=20)  {label='😮‍💨 Tired - slowing down';         color='#86efac';}
+    else if(sp<=40)  {label='😤 Weakening - keep reeling';     color='#fbbf24';}
     else if(sp<=60)  {label='💪 Struggling hard';              color='#fb923c';}
     else if(sp<=80)  {label='🔥 Fighting strong';              color='#f87171';}
-    else             {label='⚡ Full energy — watch out!';     color='#ef4444';}
+    else             {label='⚡ Full energy - watch out!';     color='#ef4444';}
     statusEl.textContent=label;
     statusEl.style.color=color;
   }
@@ -859,7 +859,7 @@ function endMinigame(success) {
   document.getElementById('bobber').className='bobber';
   setStatus('','');
 
-  // Tell the server the minigame outcome — it logs to fish_catches only on win
+  // Tell the server the minigame outcome - it logs to fish_catches only on win
   // Store the promise so closeCatchFlash can await it before refreshing collection
   window._resolvePromise = sb.rpc('resolve_cast', { p_cast_id: currentCastId, p_won: success });
 

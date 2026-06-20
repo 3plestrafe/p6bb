@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Physics Black Belt — Dashboard</title>
+<title>Physics Black Belt - Dashboard</title>
 <link rel="stylesheet" href="css/app.css?v=0.12"/>
 </head>
 <body>
@@ -36,7 +36,7 @@
     <a class="nav-btn" href="fishing.html" style="text-decoration:none;">🎣 Fishing</a>
     <a class="nav-btn" href="shop.html" style="text-decoration:none;">🛒 Shop</a>
     <a class="nav-btn" href="leaderboard.html" style="text-decoration:none;">🏆 Ranks</a>
-    <div class="nav-user">logged in as <span id="nav-email">—</span></div>
+    <div class="nav-user">logged in as <span id="nav-email">-</span></div>
     <button class="nav-btn" onclick="signOut()">Sign out</button>
   </div>
 </nav>
@@ -54,7 +54,7 @@
       <div class="stat-chip"><div class="stat-chip-num" id="stat-xp">0</div><div class="stat-chip-label">Total XP</div></div>
       <div class="stat-chip"><div class="stat-chip-num" id="stat-chapters">0</div><div class="stat-chip-label">Unlocked</div></div>
       <div class="stat-chip"><div class="stat-chip-num" id="stat-belts">0</div><div class="stat-chip-label">Belts Earned</div></div>
-      <div class="stat-chip"><div class="stat-chip-num" id="stat-highest">—</div><div class="stat-chip-label">Highest Belt</div></div>
+      <div class="stat-chip"><div class="stat-chip-num" id="stat-highest">-</div><div class="stat-chip-label">Highest Belt</div></div>
       <div class="stat-chip"><div class="stat-chip-num" id="stat-breadth">0</div><div class="stat-chip-label">Chapters Active</div></div>
       <!-- Streak chip -->
       <div class="stat-chip" id="streak-chip" style="display:none;">
@@ -66,12 +66,12 @@
 
   <!-- Belt legend -->
   <div class="belt-legend anim-rise anim-rise-2">
-    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#f0f0f0;"></div>White — Recognition</div>
-    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#f5c842;"></div>Yellow — Understanding</div>
-    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#f5852a;"></div>Orange — Application</div>
-    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#4a90d9;"></div>Blue — Analysis</div>
-    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#a0623a;"></div>Brown — Synthesis</div>
-    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#888;border:1px solid #555;"></div>Black — Mastery</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#f0f0f0;"></div>White - Recognition</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#f5c842;"></div>Yellow - Understanding</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#f5852a;"></div>Orange - Application</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#4a90d9;"></div>Blue - Analysis</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#a0623a;"></div>Brown - Synthesis</div>
+    <div class="belt-legend-item"><div class="belt-legend-dot" style="background:#888;border:1px solid #555;"></div>Black - Mastery</div>
   </div>
 
   <!-- Version -->
@@ -99,7 +99,7 @@
       <button class="modal-close" onclick="closeModalDirect()">✕</button>
     </div>
     <div class="modal-body">
-      <!-- Scenario mission briefing — collapsed by default -->
+      <!-- Scenario mission briefing - collapsed by default -->
       <div id="modal-scenario" style="display:none;margin-bottom:12px;">
         <button onclick="toggleScenario()" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.2);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;padding:8px 12px;cursor:pointer;text-align:left;">
           <span style="font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.12em;color:var(--gold);">📡 MISSION BRIEFING</span>
@@ -238,7 +238,7 @@ function getHighestPassed(chId) {
 function renderDashboard() {
   const unlocked = chapters.filter(c=>!c.is_locked).length;
   const totalBelts = progress.filter(p=>p.passed).length;
-  let highest = '—';
+  let highest = '-';
   for (let i=BELTS.length-1;i>=0;i--) { if(progress.some(p=>p.belt===BELTS[i].id&&p.passed)){highest=BELTS[i].label;break;} }
 
   // Use real XP from profile, fallback to calculated
@@ -332,20 +332,20 @@ function renderModalProgress() {
     const isBlack = b.id === 'black';
 
     if (!unlocked) {
-      // Locked belt — greyed out, not clickable
+      // Locked belt - greyed out, not clickable
       return `<div class="belt-progress-row locked-row" style="border-left:3px solid #333;">
         <div class="belt-pip-dot" style="background:#2a2a2a;border:1px solid #333;"></div>
-        <div class="belt-pip-name" style="color:var(--text3);">${b.label} Belt <span>— ${b.goal}</span></div>
+        <div class="belt-pip-name" style="color:var(--text3);">${b.label} Belt <span>- ${b.goal}</span></div>
         <div class="belt-pip-status locked-s">🔒 Locked</div>
       </div>`;
     }
 
     if (passed) {
-      // Passed belt — clickable for practice
+      // Passed belt - clickable for practice
       const href = `quiz.html?chapter=${chId}&belt=${b.id}&practice=1`;
       return `<div class="belt-progress-row passed-row" style="border-left:3px solid ${b.color};">
         <div class="belt-pip-dot" style="background:${b.color};"></div>
-        <div class="belt-pip-name">${b.label} Belt <span>— ${b.goal}</span></div>
+        <div class="belt-pip-name">${b.label} Belt <span>- ${b.goal}</span></div>
         <div style="display:flex;align-items:center;gap:10px;">
           <div class="belt-pip-status passed">✓ Passed</div>
           <button onclick="event.stopPropagation();window.location.href='${href}'" style="font-family:var(--font-mono);font-size:9px;color:${b.color};background:transparent;border:1px solid ${b.color};border-radius:3px;padding:3px 8px;letter-spacing:0.04em;cursor:pointer;transition:background 0.15s,color 0.15s;" onmouseover="this.style.background='${b.color}';this.style.color='#111318';" onmouseout="this.style.background='transparent';this.style.color='${b.color}';">↺ Practice</button>
@@ -353,7 +353,7 @@ function renderModalProgress() {
       </div>`;
     }
 
-    // Current active belt — show big start button
+    // Current active belt - show big start button
     const href = `quiz.html?chapter=${chId}&belt=${b.id}`;
     const attemptsLabel = attempts > 0 ? `${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%` : 'Not started yet';
     const XP_BY_BELT = {white:2,yellow:3,orange:5,blue:7,brown:10,black:15};
@@ -362,7 +362,7 @@ function renderModalProgress() {
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="belt-pip-dot" style="background:${b.color};width:14px;height:14px;"></div>
         <div style="flex:1;">
-          <div style="font-size:13px;font-weight:600;color:var(--text);">${b.label} Belt <span style="color:var(--text3);font-size:11px;font-family:var(--font-mono);">— ${b.goal}</span></div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${b.label} Belt <span style="color:var(--text3);font-size:11px;font-family:var(--font-mono);">- ${b.goal}</span></div>
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:2px;">${attemptsLabel}</div>
         </div>
         <div style="font-family:var(--font-mono);font-size:10px;color:var(--gold);">${xpLabel}</div>

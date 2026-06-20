@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Physics Black Belt — Shop</title>
+<title>Physics Black Belt - Shop</title>
 <link rel="stylesheet" href="css/app.css"/>
 <style>
 .shop-wrap{max-width:760px;margin:0 auto;padding:32px 24px 80px;position:relative;z-index:1;}
@@ -78,7 +78,7 @@
   </div>
 
   <div class="anim-rise anim-rise-3">
-    <div class="shop-section-title">Titles — earned by reaching XP milestones</div>
+    <div class="shop-section-title">Titles - earned by reaching XP milestones</div>
     <div class="titles-list" id="titles-list"></div>
   </div>
 </div>
@@ -111,7 +111,7 @@ const TITLE_THRESHOLDS = [
   { title:'Black Belt', xp:3000 },
 ];
 
-// SVG pattern previews — pure CSS, no images needed
+// SVG pattern previews - pure CSS, no images needed
 const BG_PREVIEWS = {
   'bg-default': `background:#0d0f14;`,
   'bg-grid':    `background:#0d0f14; background-image:radial-gradient(circle,#2a2d3a 1px,transparent 1px); background-size:24px 24px;`,
@@ -203,7 +203,7 @@ function renderTitles() {
       <div class="title-row-left ${earned?'':'title-locked'}">
         <div>
           <div class="title-name">${t.title}</div>
-          <div class="title-req">${t.xp === 0 ? 'Default — everyone starts here' : '⚡ Requires '+t.xp.toLocaleString()+' XP'}</div>
+          <div class="title-req">${t.xp === 0 ? 'Default - everyone starts here' : '⚡ Requires '+t.xp.toLocaleString()+' XP'}</div>
         </div>
       </div>
       <div>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Physics Black Belt — Admin</title>
+<title>Physics Black Belt - Admin</title>
 <link rel="stylesheet" href="css/app.css"/>
 <style>
 body{display:flex;flex-direction:column;min-height:100vh;}
@@ -83,7 +83,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 <nav class="nav">
   <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
   <div class="nav-right">
-    <div class="nav-user">Admin: <span id="nav-email">—</span></div>
+    <div class="nav-user">Admin: <span id="nav-email">-</span></div>
     <a class="nav-btn" href="app.html">← Student View</a>
     <button class="nav-btn" onclick="signOut()">Sign out</button>
   </div>
@@ -101,13 +101,13 @@ body{display:flex;flex-direction:column;min-height:100vh;}
     </div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-label">Belt Key</div>
-    <div style="padding:0 20px;display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#f0f0f0;border-color:#f0f0f0;"></span>White</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#f5c842;border-color:#f5c842;"></span>Yellow</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#f5852a;border-color:#f5852a;"></span>Orange</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#4a90d9;border-color:#4a90d9;"></span>Blue</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#a0623a;border-color:#a0623a;"></span>Brown</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#888;border-color:#888;"></span>Black</div>
+    <div style="padding:0 20px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#f0f0f0;border-color:#f0f0f0;flex-shrink:0;"></span><span><span style="color:var(--text2);">White</span><br><span style="font-size:9px;letter-spacing:0.04em;">Recognition</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#f5c842;border-color:#f5c842;flex-shrink:0;"></span><span><span style="color:var(--text2);">Yellow</span><br><span style="font-size:9px;letter-spacing:0.04em;">Understanding</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#f5852a;border-color:#f5852a;flex-shrink:0;"></span><span><span style="color:var(--text2);">Orange</span><br><span style="font-size:9px;letter-spacing:0.04em;">Application</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#4a90d9;border-color:#4a90d9;flex-shrink:0;"></span><span><span style="color:var(--text2);">Blue</span><br><span style="font-size:9px;letter-spacing:0.04em;">Analysis</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#a0623a;border-color:#a0623a;flex-shrink:0;"></span><span><span style="color:var(--text2);">Brown</span><br><span style="font-size:9px;letter-spacing:0.04em;">Synthesis</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);"><span class="bdot" style="background:#888;border-color:#888;flex-shrink:0;"></span><span><span style="color:var(--text2);">Black</span><br><span style="font-size:9px;letter-spacing:0.04em;">Mastery</span></span></div>
     </div>
     <div class="sidebar-footer">Physics Black Belt<br>Admin Panel v0.1<br><span style="color:var(--teal);">● Live</span></div>
   </div>
@@ -128,18 +128,18 @@ body{display:flex;flex-direction:column;min-height:100vh;}
         <div class="page-header-left"><h2>Students</h2><p>Per-student XP, belts, title. Click a row to edit. Whitelist controls access.</p></div>
         <button class="btn btn-gold" onclick="openAddStudent()">+ Add Student</button>
       </div>
-      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Student</th><th>Title</th><th>XP</th><th>Fish Pts</th><th>Belts Passed</th><th>Chapters Active</th><th>Highest Belt</th><th>Whitelisted</th><th>Edit</th></tr></thead><tbody id="students-tbody"></tbody></table></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Student</th><th>Title</th><th>XP</th><th>Fish Pts</th><th>Belts Passed</th><th>Chapter Progress</th><th>Highest Belt</th><th>Whitelisted</th><th>Edit</th></tr></thead><tbody id="students-tbody"></tbody></table></div>
     </div>
 
     <div class="section-page" id="section-questions">
       <div class="page-header"><div class="page-header-left"><h2>Question Bank</h2><p>Add questions via form or paste JSON batches from ChatGPT.</p></div></div>
       <div class="q-tabs">
-        <button class="q-tab active" id="qtab-form" onclick="switchQTab('form')">Form — Single Question</button>
-        <button class="q-tab" id="qtab-json" onclick="switchQTab('json')">JSON — Bulk Import</button>
+        <button class="q-tab active" id="qtab-form" onclick="switchQTab('form')">Form - Single Question</button>
+        <button class="q-tab" id="qtab-json" onclick="switchQTab('json')">JSON - Bulk Import</button>
         <button class="q-tab" id="qtab-browse" onclick="switchQTab('browse')">Browse Questions</button>
         <button class="q-tab" id="qtab-checker" onclick="switchQTab('checker')">⚠ Format Check</button>
       </div>
-      <div id="qpanel-form"><div class="card"><div class="card-title">Add Single Question</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="form-group"><label>Chapter</label><select id="q-chapter"></select></div><div class="form-group"><label>Belt Level</label><select id="q-belt"><option value="white">White</option><option value="yellow">Yellow</option><option value="orange">Orange</option><option value="blue">Blue</option><option value="brown">Brown</option><option value="black">Black</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="form-group"><label>Question Type</label><select id="q-type" onchange="toggleQType()"><option value="mcq">Multiple Choice (MCQ)</option><option value="numeric">Numeric Answer (Black Belt)</option><option value="concept">Concept — No calculation (White Belt)</option></select></div><div class="form-group"><label>Bloom's Level</label><select id="q-bloom"><option value="remember">Remember</option><option value="understand">Understand</option><option value="apply">Apply</option><option value="analyze">Analyze</option><option value="evaluate">Evaluate</option><option value="create">Create</option></select></div></div><div class="form-group"><label>Question Template</label><textarea id="q-template" rows="3" class="json-area" style="min-height:70px;" placeholder="A ball is dropped from {h} m. What is the time to hit the ground? (g = 10 m/s²)"></textarea></div><div id="q-formula-section"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="form-group"><label>Formula (shown as hint)</label><input type="text" id="q-formula" placeholder="t = sqrt(2h/g)"/></div><div class="form-group"><label>Correct Expression</label><input type="text" id="q-correct-expr" placeholder="Math.sqrt(2*h/g)"/></div></div><div class="form-group"><label>Parameters (JSON) — for MCQ distractors or numeric ranges</label><textarea id="q-params" rows="2" class="json-area" style="min-height:60px;" placeholder='{"h": {"min": 20, "max": 80, "step": 5}}'></textarea></div><div class="form-group" id="q-distractor-section"><label>Distractor Expressions (common mistakes, comma separated)</label><input type="text" id="q-distractors" placeholder="2*h/g, sqrt(h/g), h/g"/></div></div><div class="form-group"><label>Explanation (shown after answer)</label><textarea id="q-explanation" rows="2" class="json-area" style="min-height:60px;" placeholder="Using h = ½gt², solve for t: t = √(2h/g)..."></textarea></div><div class="form-group"><label>DepEd Code</label><input type="text" id="q-deped" placeholder="STEM_GP12KIN-Ia-12"/></div><div id="q-form-msg" class="msg"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;"><button class="btn btn-ghost" onclick="clearQForm()">Clear</button><button class="btn btn-gold" onclick="saveQuestion()">Save Question →</button></div></div></div>
+      <div id="qpanel-form"><div class="card"><div class="card-title">Add Single Question</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="form-group"><label>Chapter</label><select id="q-chapter"></select></div><div class="form-group"><label>Belt Level</label><select id="q-belt"><option value="white">White</option><option value="yellow">Yellow</option><option value="orange">Orange</option><option value="blue">Blue</option><option value="brown">Brown</option><option value="black">Black</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="form-group"><label>Question Type</label><select id="q-type" onchange="toggleQType()"><option value="mcq">Multiple Choice (MCQ)</option><option value="numeric">Numeric Answer (Black Belt)</option><option value="concept">Concept - No calculation (White Belt)</option></select></div><div class="form-group"><label>Bloom's Level</label><select id="q-bloom"><option value="remember">Remember</option><option value="understand">Understand</option><option value="apply">Apply</option><option value="analyze">Analyze</option><option value="evaluate">Evaluate</option><option value="create">Create</option></select></div></div><div class="form-group"><label>Question Template</label><textarea id="q-template" rows="3" class="json-area" style="min-height:70px;" placeholder="A ball is dropped from {h} m. What is the time to hit the ground? (g = 10 m/s²)"></textarea></div><div id="q-formula-section"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="form-group"><label>Formula (shown as hint)</label><input type="text" id="q-formula" placeholder="t = sqrt(2h/g)"/></div><div class="form-group"><label>Correct Expression</label><input type="text" id="q-correct-expr" placeholder="Math.sqrt(2*h/g)"/></div></div><div class="form-group"><label>Parameters (JSON) - for MCQ distractors or numeric ranges</label><textarea id="q-params" rows="2" class="json-area" style="min-height:60px;" placeholder='{"h": {"min": 20, "max": 80, "step": 5}}'></textarea></div><div class="form-group" id="q-distractor-section"><label>Distractor Expressions (common mistakes, comma separated)</label><input type="text" id="q-distractors" placeholder="2*h/g, sqrt(h/g), h/g"/></div></div><div class="form-group"><label>Explanation (shown after answer)</label><textarea id="q-explanation" rows="2" class="json-area" style="min-height:60px;" placeholder="Using h = ½gt², solve for t: t = √(2h/g)..."></textarea></div><div class="form-group"><label>DepEd Code</label><input type="text" id="q-deped" placeholder="STEM_GP12KIN-Ia-12"/></div><div id="q-form-msg" class="msg"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;"><button class="btn btn-ghost" onclick="clearQForm()">Clear</button><button class="btn btn-gold" onclick="saveQuestion()">Save Question →</button></div></div></div>
       <div id="qpanel-json" style="display:none;"><div class="card"><div class="card-title">Bulk Import via JSON</div><p style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:16px;line-height:1.7;">Paste a JSON array of questions generated by ChatGPT.<br>Each question must follow the template format. Invalid entries will be skipped.</p><textarea class="json-area" id="json-paste" rows="14" placeholder='[{"chapter_id":"g11-q1-kinematics","belt":"yellow","type":"mcq","template":"A car travels {d} m in {t} s. What is its speed?","formula":"v = d/t","params":{"d":{"min":50,"max":200,"step":10},"t":{"min":2,"max":10,"step":1}},"correct_expr":"d/t","distractor_exprs":["d*t","t/d","d+t"],"explanation":"Speed = distance ÷ time = {d} ÷ {t} = {answer} m/s","deped_code":"STEM_GP12KIN-Ia-12","bloom_level":"apply"}]'></textarea><div class="json-validate" id="json-validate-msg"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;"><button class="btn btn-ghost" onclick="validateJSON()">Validate JSON</button><button class="btn btn-gold" onclick="importJSON()">Import All →</button></div></div></div>
       <div id="qpanel-browse" style="display:none;">
         <!-- Question Count Summary Grid -->
@@ -227,7 +227,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
           <button type="button" onclick="togglePasswordVisibility()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-family:var(--font-mono);font-size:10px;padding:0;">SHOW</button>
         </div>
       </div>
-      <!-- Success box — shown after creation -->
+      <!-- Success box - shown after creation -->
       <div id="sm-success-box" style="display:none;background:rgba(45,212,160,0.08);border:1px solid rgba(45,212,160,0.25);border-radius:6px;padding:14px;margin-top:4px;">
         <div style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--teal);margin-bottom:8px;">✓ STUDENT CREATED</div>
         <div style="font-family:var(--font-mono);font-size:11px;color:var(--text2);line-height:1.8;">
@@ -290,7 +290,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
         <div class="form-group"><label>Cost (XP)</label><input type="number" id="si-cost" min="0" placeholder="500"/></div>
       </div>
       <div class="form-group"><label>Description</label><input type="text" id="si-desc" placeholder="A twinkling starfield."/></div>
-      <div class="form-group"><label>Preview URL (optional — image link)</label><input type="text" id="si-preview" placeholder="https://..."/></div>
+      <div class="form-group"><label>Preview URL (optional - image link)</label><input type="text" id="si-preview" placeholder="https://..."/></div>
       <div class="form-group"><label>Sort Order</label><input type="number" id="si-sort" placeholder="5"/></div>
       <div id="si-msg" class="msg"></div>
     </div>
@@ -365,7 +365,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const BELT_COLORS = {white:'#f0f0f0',yellow:'#f5c842',orange:'#f5852a',blue:'#4a90d9',brown:'#a0623a',black:'#888888'};
 const BELTS = ['white','yellow','orange','blue','brown','black'];
 let user, chapters=[], whitelist=[], profiles=[], progress=[], questions=[], shopItems=[], fishPoints={};
-let questionCounts = {}; // { chapter_id: { white:0, yellow:0, ... } } — used for summary grid
+let questionCounts = {}; // { chapter_id: { white:0, yellow:0, ... } } - used for summary grid
 let editingChapterId = null, editingStudentId = null, editingShopItemId = null;
 
 const TITLE_THRESHOLDS = [
@@ -415,7 +415,7 @@ async function loadAll() {
   fishPoints = {};
   (fc.data || []).forEach(r => { fishPoints[r.user_id] = (fishPoints[r.user_id] || 0) + (r.points || 0); });
 
-  // Paginated fetch of chapter_id+belt — bypasses Supabase's 1000-row server cap
+  // Paginated fetch of chapter_id+belt - bypasses Supabase's 1000-row server cap
   const PAGE = 1000;
   let allQRows = [], page = 0, done = false;
   while (!done) {
@@ -465,7 +465,7 @@ function renderChapters() {
     return `<tr onclick="openEditChapter('${ch.id}')">
       <td style="color:var(--text);font-weight:500;">${ch.title}</td>
       <td>Grade ${ch.grade}</td><td>Q${ch.quarter}</td>
-      <td style="font-family:var(--font-mono);font-size:11px;">${ch.deped_code||'—'}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;">${ch.deped_code||'-'}</td>
       <td><span class="badge ${qCount>0?'badge-green':'badge-grey'}">${qCount}</span></td>
       <td><span class="badge ${ch.is_locked?'badge-grey':'badge-green'}">${ch.is_locked?'Locked':'Open'}</span></td>
       <td onclick="event.stopPropagation()"><label class="toggle"><input type="checkbox" ${!ch.is_locked?'checked':''} onchange="toggleChapterLock('${ch.id}',this.checked)"/><span class="toggle-slider"></span></label></td>
@@ -565,16 +565,26 @@ function renderStudents() {
     const inWhitelist = whitelist.some(w => w.email === s.email);
     const studentProgress = progress.filter(p => p.student_id === s.id);
     const beltsPassed = studentProgress.filter(p => p.passed).length;
-    const chaptersActive = new Set(studentProgress.filter(p => p.passed).map(p => p.chapter_id)).size;
     const beltOrder = ['white','yellow','orange','blue','brown','black'];
-    let highestBelt = '—';
+    let highestBelt = '-';
     for (let i = beltOrder.length-1; i >= 0; i--) {
       if (studentProgress.some(p => p.belt === beltOrder[i] && p.passed)) { highestBelt = beltOrder[i]; break; }
     }
+    // Build chapter progress pills - one per chapter where any belt was passed
+    const chapterPills = chapters.map(ch => {
+      let chHighest = null;
+      for (let i = beltOrder.length-1; i >= 0; i--) {
+        if (studentProgress.some(p => p.chapter_id === ch.id && p.belt === beltOrder[i] && p.passed)) { chHighest = beltOrder[i]; break; }
+      }
+      if (!chHighest) return '';
+      const col = BELT_COLORS[chHighest];
+      const shortName = ch.title.split(' ')[0]; // e.g. "Kinematics" from "Kinematics (G11)"
+      return `<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:20px;background:${col}18;border:1px solid ${col};color:${col};margin:2px 3px 2px 0;white-space:nowrap;"><span style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0;"></span>${shortName}</span>`;
+    }).join('');
     const xp = s.xp || 0;
     const fishPts = fishPoints[s.id] || 0;
     const title = s.title || 'Cadet';
-    const email = s.email || '—';
+    const email = s.email || '-';
     const beltColor = BELT_COLORS[highestBelt] || null;
     const isTeacher = s.role === 'teacher';
     return `<tr onclick="openStudentEdit('${s.id}')" title="Click to edit">
@@ -586,8 +596,8 @@ function renderStudents() {
       <td style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--gold);">⚡ ${xp.toLocaleString()}</td>
       <td style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--teal);">🎣 ${fishPts}</td>
       <td style="font-family:var(--font-display);font-size:13px;font-weight:700;">${beltsPassed}</td>
-      <td style="font-family:var(--font-display);font-size:13px;font-weight:700;">${chaptersActive} <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">/ ${chapters.length}</span></td>
-      <td>${highestBelt !== '—' ? `<span class="bdot" style="background:${beltColor};border-color:${beltColor};"></span> ${highestBelt}` : '—'}</td>
+      <td style="min-width:160px;">${chapterPills || '<span style="font-family:var(--font-mono);font-size:11px;color:var(--text3);">No progress</span>'}</td>
+      <td>${highestBelt !== '-' ? `<span class="bdot" style="background:${beltColor};border-color:${beltColor};"></span> ${highestBelt}` : '-'}</td>
       <td><span class="badge ${inWhitelist?'badge-green':'badge-grey'}">${inWhitelist?'✓':'✗'}</span></td>
       <td onclick="event.stopPropagation()">
         <button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;" onclick="openStudentEdit('${s.id}')">Edit</button>
@@ -723,7 +733,7 @@ function renderQSummary() {
     const cells = beltCounts.map((n,i) => {
       const col = BELT_COLORS[BELTS[i]];
       const style = n>0 ? `color:var(--text);background:${col}22;border:1px solid ${col}55;border-radius:3px;padding:1px 8px;font-family:var(--font-mono);font-size:11px;font-weight:600;` : `color:var(--text3);font-family:var(--font-mono);font-size:11px;`;
-      return `<td style="text-align:center;"><span style="${style}">${n>0?n:'—'}</span></td>`;
+      return `<td style="text-align:center;"><span style="${style}">${n>0?n:'-'}</span></td>`;
     }).join('');
     return `<tr><td style="text-align:left;font-size:12px;color:var(--text);position:sticky;left:0;background:var(--bg2);z-index:1;white-space:nowrap;padding:8px 10px;">${ch.title}</td>${cells}<td style="text-align:center;font-family:var(--font-display);font-size:12px;font-weight:700;color:${total>0?'var(--gold)':'var(--text3)'};">${total}</td></tr>`;
   }).join('');
@@ -769,15 +779,15 @@ async function runFormatCheck() {
       const KNOWN_CONSTANTS = new Set(['g','e','c','h','k','n','r','q']);
       function checkImpliedMult(expr) {
         if (!expr) return false;
-        // Skip string literals (e.g. 'distance', "velocity") — valid concept MCQ answers
+        // Skip string literals (e.g. 'distance', "velocity") - valid concept MCQ answers
         if (/^['"].*['"]$/.test(expr.trim())) return false;
-        // Strip Math.PROPERTY references (Math.PI, Math.E, Math.LN2, etc.) — they're constants, not functions
+        // Strip Math.PROPERTY references (Math.PI, Math.E, Math.LN2, etc.) - they're constants, not functions
         let stripped = expr.replace(/Math\.[A-Z_][A-Z0-9_]*/g, '1');
         // Strip Math.xxx( function calls
         stripped = stripped.replace(/Math\.[a-zA-Z]+\s*\(/g, '(');
         // Build full set of known identifiers: params + common constants
         // Exclude any single-letter constant that is a letter contained within a multi-char param name
-        // e.g. param "mh" contains "h" — don't let "h" independently trigger the adjacency check
+        // e.g. param "mh" contains "h" - don't let "h" independently trigger the adjacency check
         const paramLetters = new Set(paramKeys.filter(k=>k.length>1).join('').split(''));
         const filteredConstants = [...KNOWN_CONSTANTS].filter(c => !paramLetters.has(c));
         const allKnown = [...paramKeys, ...filteredConstants];
@@ -805,19 +815,19 @@ async function runFormatCheck() {
         if (checkImpliedMult(expr)) {
           qIssues.push({ sev:'error', msg:`Possible implied multiplication in <code>correct_expr</code>: <em>${expr}</em>` });
         }
-        // Skip operator/function checks for string literals — they're display text, not evaluated
+        // Skip operator/function checks for string literals - they're display text, not evaluated
         const isStringLiteral = /^['"].*['"]$/.test(expr.trim());
         if (!isStringLiteral) {
           if (expr.includes('^')) qIssues.push({ sev:'error', msg:`Uses <code>^</code> instead of <code>**</code> or <code>Math.pow()</code> in <code>correct_expr</code>: <em>${expr}</em>` });
           if (/(?<!Math\.)sqrt\s*\(/.test(expr)) qIssues.push({ sev:'error', msg:`Uses <code>sqrt()</code> without <code>Math.</code> prefix in <code>correct_expr</code>: <em>${expr}</em>` });
           if (/(?<!Math\.)\b(sin|cos|tan|log|abs)\s*\(/.test(expr)) qIssues.push({ sev:'error', msg:`Uses math function without <code>Math.</code> prefix in <code>correct_expr</code>: <em>${expr}</em>` });
         }
-        // Params referenced in template but missing from params object —
+        // Params referenced in template but missing from params object -
         // only flag if the variable also appears in correct_expr or distractor_exprs,
         // because that's where an undefined param actually breaks evaluation.
         // Variables that only appear in the template text are decorative/narrative (e.g. formula-recognition MCQs).
         const templateVars = [...(q.template||'').matchAll(/\{(\w+)\}/g)].map(m=>m[1]).filter(v=>v!=='answer');
-        // Build a list of only the non-string-literal expressions — string literals won't fail eval
+        // Build a list of only the non-string-literal expressions - string literals won't fail eval
         // even if they contain variable-looking text like "v - u"
         const evalExprs = [q.correct_expr||'', ...(q.distractor_exprs||[])]
           .filter(e => !/^['"].*['"]$/.test(e.trim()));
@@ -827,9 +837,9 @@ async function runFormatCheck() {
             // Only warn if the variable appears as a whole word in a non-string expression
             const usedInExpr = new RegExp(`\\b${v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\b`).test(allEvalExprs);
             if (usedInExpr) {
-              qIssues.push({ sev:'warn', msg:`Template uses <code>{${v}}</code> but it's not defined in <code>params</code> (used in expression — may cause eval error)` });
+              qIssues.push({ sev:'warn', msg:`Template uses <code>{${v}}</code> but it's not defined in <code>params</code> (used in expression - may cause eval error)` });
             }
-            // else: decorative template var only (formula-recognition MCQ or derived value) — safe
+            // else: decorative template var only (formula-recognition MCQ or derived value) - safe
           }
         });
       }
@@ -1001,11 +1011,11 @@ function renderPreview(q) {
     choicesWrap.innerHTML = `<div class="prev-numeric">
       <div class="prev-answer-label">CORRECT ANSWER</div>
       <div class="prev-answer-val">${gen.correctAnswer !== null ? gen.correctAnswer : '⚠ error'}</div>
-      <div class="prev-tolerance">Accepted: ${gen.correctAnswer !== null ? (Math.round((gen.correctAnswer - tolerance)*1000)/1000) + ' – ' + (Math.round((gen.correctAnswer + tolerance)*1000)/1000) : '—'} &nbsp;(±5%)</div>
+      <div class="prev-tolerance">Accepted: ${gen.correctAnswer !== null ? (Math.round((gen.correctAnswer - tolerance)*1000)/1000) + ' – ' + (Math.round((gen.correctAnswer + tolerance)*1000)/1000) : '-'} &nbsp;(±5%)</div>
     </div>`;
   } else {
     if (!gen.allChoices.length) {
-      choicesWrap.innerHTML = `<div style="font-family:var(--font-mono);font-size:12px;color:#e06060;margin-top:16px;">⚠ Could not generate choices — check distractor_exprs</div>`;
+      choicesWrap.innerHTML = `<div style="font-family:var(--font-mono);font-size:12px;color:#e06060;margin-top:16px;">⚠ Could not generate choices - check distractor_exprs</div>`;
     } else {
       choicesWrap.innerHTML = `<div class="prev-choices">${gen.allChoices.map((c,i)=>{
         const isCorrect = c === gen.correctAnswer;
@@ -1022,7 +1032,7 @@ function renderPreview(q) {
     expBox.style.display = 'none';
   }
   // Reroll note
-  document.getElementById('prev-reroll-note').textContent = paramEntries.length ? 'Values are randomised — reroll to see different combinations' : 'No variable params — question is always the same';
+  document.getElementById('prev-reroll-note').textContent = paramEntries.length ? 'Values are randomised - reroll to see different combinations' : 'No variable params - question is always the same';
 }
 
 function fixExpression(expr, paramKeys) {
@@ -1126,7 +1136,7 @@ function validateJSON() {
   try {
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr)) throw new Error('Must be a JSON array [ ]');
-    el.innerHTML = `<span style="color:var(--teal);">✓ Valid JSON — ${arr.length} question${arr.length!==1?'s':''} ready to import</span>`;
+    el.innerHTML = `<span style="color:var(--teal);">✓ Valid JSON - ${arr.length} question${arr.length!==1?'s':''} ready to import</span>`;
   } catch(e) {
     el.innerHTML = `<span style="color:var(--red);">✗ Invalid JSON: ${e.message}</span>`;
   }
@@ -1291,7 +1301,7 @@ function renderProgress() {
     const ch = chapters.find(c=>c.id===p.chapter_id);
     const email = prof?.email||'Unknown';
     const name = email.split('@')[0];
-    const date = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '—';
+    const date = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '-';
     return `<tr><td style="font-size:12px;">${name}<br><span style="font-size:10px;color:var(--text3);font-family:var(--font-mono);">${email}</span></td><td style="font-size:12px;">${ch?.title||p.chapter_id}</td><td><span class="bdot" style="background:${BELT_COLORS[p.belt]||'#555'};border-color:${BELT_COLORS[p.belt]||'#555'};"></span> ${p.belt}</td><td style="font-family:var(--font-mono);font-size:12px;">${p.attempts||0}</td><td style="font-family:var(--font-mono);font-size:12px;">${Math.round(p.best_score||0)}%</td><td><span class="badge ${p.passed?'badge-green':'badge-grey'}">${p.passed?'✓ Passed':'In progress'}</span></td><td style="font-family:var(--font-mono);font-size:11px;">${date}</td></tr>`;
   }).join('');
 }
@@ -1316,12 +1326,12 @@ function openStudentEdit(id) {
   if (!s) return;
   editingStudentId = id;
   document.getElementById('sem-title').textContent = 'Edit Student';
-  document.getElementById('sem-email-display').textContent = `✉ ${s.email || '—'}`;
+  document.getElementById('sem-email-display').textContent = `✉ ${s.email || '-'}`;
   document.getElementById('sem-xp').value = s.xp || 0;
   document.getElementById('sem-title-sel').value = s.title || 'Cadet';
   document.getElementById('sem-msg').className = 'msg';
 
-  // Belt reset buttons — one per passed progress row
+  // Belt reset buttons - one per passed progress row
   const studentProgress = progress.filter(p => p.student_id === id && p.passed);
   const beltResetHtml = studentProgress.map(p => {
     const ch = chapters.find(c => c.id === p.chapter_id);
@@ -1371,7 +1381,7 @@ function renderShop() {
       <td style="color:var(--text);font-weight:500;">${item.name}</td>
       <td><span class="badge badge-grey">${item.type}</span></td>
       <td style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--gold);">${item.cost === 0 ? 'Free' : '⚡ '+item.cost}</td>
-      <td style="font-size:12px;color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.description||'—'}</td>
+      <td style="font-size:12px;color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.description||'-'}</td>
       <td onclick="event.stopPropagation()"><label class="toggle"><input type="checkbox" ${item.active?'checked':''} onchange="toggleShopItem('${item.id}',this.checked)"/><span class="toggle-slider"></span></label></td>
       <td onclick="event.stopPropagation()"><button class="btn btn-danger" style="padding:4px 10px;font-size:10px;" onclick="confirmDeleteShopItem('${item.id}')">Delete</button></td>
     </tr>`).join('');

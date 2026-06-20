@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Physics Black Belt — Quiz</title>
+<title>Physics Black Belt - Quiz</title>
 <link rel="stylesheet" href="css/app.css"/>
 <style>
 .quiz-wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:24px 24px 80px;}
@@ -127,7 +127,7 @@
 <nav class="nav">
   <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
   <div class="nav-right">
-    <div class="nav-user" id="nav-chapter-belt">—</div>
+    <div class="nav-user" id="nav-chapter-belt">-</div>
     <a class="nav-btn" href="app.html">← Dashboard</a>
   </div>
 </nav>
@@ -151,7 +151,7 @@
       <div class="briefing-tag">📡 INCOMING TRANSMISSION</div>
       <div class="briefing-icon" id="briefing-icon">📚</div>
       <div class="briefing-chapter" id="briefing-chapter">Chapter</div>
-      <div class="briefing-belt" id="briefing-belt">— White Belt —</div>
+      <div class="briefing-belt" id="briefing-belt">- White Belt -</div>
       <div class="briefing-scenario" id="briefing-scenario" style="display:none;"></div>
       <div class="briefing-meta">
         <span>📝 <span id="briefing-q-count">10</span> questions</span>
@@ -195,7 +195,7 @@
             <button class="hint-confirm-btn hint-confirm-no" onclick="dismissHintWarning()">Never mind</button>
           </div>
         </div>
-        <div class="hint-used-label" id="hint-used-label" style="display:none;">💡 Hint used — 1 XP for this question</div>
+        <div class="hint-used-label" id="hint-used-label" style="display:none;">💡 Hint used - 1 XP for this question</div>
       </div>
 
       <!-- MCQ choices -->
@@ -223,7 +223,7 @@
       <div class="results-icon" id="results-icon">🥋</div>
       <div class="results-score" id="results-score">0%</div>
       <div class="results-label">MISSION COMPLETE</div>
-      <div class="results-verdict" id="results-verdict">—</div>
+      <div class="results-verdict" id="results-verdict">-</div>
       <div class="results-breakdown">
         <div class="results-stat"><div class="results-stat-num" id="res-correct">0</div><div class="results-stat-label">Correct</div></div>
         <div class="results-stat"><div class="results-stat-num" id="res-total">0</div><div class="results-stat-label">Total</div></div>
@@ -280,7 +280,7 @@ async function init() {
 async function loadQuiz() {
   const { data: ch } = await sb.from('chapters').select('*').eq('id', chapterId).single();
   chapterData = ch;
-  if (ch) document.getElementById('nav-chapter-belt').textContent = `${ch.title} — ${BELT_LABELS[belt]}`;
+  if (ch) document.getElementById('nav-chapter-belt').textContent = `${ch.title} - ${BELT_LABELS[belt]}`;
 
   const { data: qs } = await sb.from('questions')
     .select('*')
@@ -410,7 +410,7 @@ function renderBeltBadge() {
   document.getElementById('belt-badge-wrap').innerHTML = `
     <div class="belt-badge" style="background:${color}18;color:${color};border-color:${color}40;">
       <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;"></span>
-      ${BELT_LABELS[belt]} — ${chapterData?.title || ''}
+      ${BELT_LABELS[belt]} - ${chapterData?.title || ''}
     </div>`;
 }
 
@@ -613,7 +613,7 @@ async function showResults() {
 
   const verdict = document.getElementById('results-verdict');
   if (passed) {
-    verdict.textContent = `✓ BELT PASSED — ${BELT_LABELS[belt]}`;
+    verdict.textContent = `✓ BELT PASSED - ${BELT_LABELS[belt]}`;
     verdict.className = 'results-verdict passed';
     const beltIdx = BELT_ORDER.indexOf(belt);
     if (beltIdx < BELT_ORDER.length - 1) {
@@ -623,7 +623,7 @@ async function showResults() {
       document.getElementById('next-belt-btn').style.display = 'inline-flex';
     }
   } else {
-    verdict.textContent = `✗ NOT PASSED — ${score}% (Need ${PASS_THRESHOLD}%)`;
+    verdict.textContent = `✗ NOT PASSED - ${score}% (Need ${PASS_THRESHOLD}%)`;
     verdict.className = 'results-verdict failed';
   }
 }

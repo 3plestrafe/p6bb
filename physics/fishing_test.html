@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fishing Minigame - Test</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0f14;color:#e8eaf0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+:root{--green:#4ade80;--gold:#c9a96e;--red:#f87171;--blue:#4a9eff;--surface:#141720;--surface2:#1c2030;--border:rgba(255,255,255,0.07);--muted:#6b7280;--mono:'Courier New',monospace;}
+
+.mg{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 32px;width:100%;max-width:520px;}
+.mg-title{font-size:17px;font-weight:700;margin-bottom:4px;}
+.mg-sub{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:10px;}
+
+.state-badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;display:inline-block;margin-bottom:5px;letter-spacing:0.04em;}
+.s-reel  {background:rgba(74,222,128,0.15);color:#4ade80;}
+.s-orange{background:rgba(251,146,60,0.15);color:#fb923c;}
+.s-free  {background:rgba(248,113,113,0.12);color:#f87171;}
+
+.tug-log{font-family:var(--mono);font-size:10px;color:var(--muted);min-height:14px;margin-bottom:8px;opacity:0.8;}
+
+/* Main bar */
+.fish-bar-wrap{position:relative;width:100%;height:48px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:5px;}
+.snap-warn{position:absolute;left:0;top:0;bottom:0;width:8%;background:rgba(248,113,113,0.12);border-right:2px dashed #f87171;pointer-events:none;}
+.fish-zone{position:absolute;top:0;bottom:0;background:rgba(74,222,128,0.22);border-left:2px solid #4ade80;border-right:2px solid #4ade80;}
+.fish-zone.orange{background:rgba(251,146,60,0.20);border-color:#fb923c;}
+.fish-zone.off{background:rgba(248,113,113,0.14);border-color:#f87171;}
+.fish-dot{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:22px;line-height:1;z-index:2;}
+.bar-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:12px;}
+
+/* Stat rows */
+.stat-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.stat-label{font-family:var(--mono);font-size:10px;color:var(--muted);width:76px;flex-shrink:0;}
+.stat-track{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;border:1px solid var(--border);}
+.stat-fill{height:100%;border-radius:4px;}
+.stat-val{font-family:var(--mono);font-size:10px;color:var(--muted);width:40px;text-align:right;flex-shrink:0;}
+
+/* Rarity buttons */
+.rarity-row{display:flex;gap:8px;margin-top:16px;margin-bottom:12px;}
+.r-btn{flex:1;padding:8px 4px;font-size:12px;font-family:var(--mono);border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--muted);cursor:pointer;}
+.r-btn.active{border-color:var(--green);color:var(--green);background:rgba(74,222,128,0.08);}
+
+/* Hold button */
+.btn-hold{width:100%;padding:14px;font-size:16px;font-weight:700;font-family:var(--mono);border:2px solid var(--border);border-radius:10px;background:var(--surface2);color:#e8eaf0;cursor:pointer;user-select:none;touch-action:none;-webkit-user-select:none;letter-spacing:0.06em;}
+.btn-hold.held{background:rgba(74,222,128,0.12);border-color:var(--green);color:var(--green);}
+
+/* Result */
+.result{margin-top:12px;padding:10px 14px;border-radius:10px;font-size:13px;font-family:var(--mono);text-align:center;display:none;}
+.result.catch{background:rgba(74,222,128,0.10);color:#4ade80;border:1px solid #4ade80;}
+.result.snap {background:rgba(251,146,60,0.10);color:#fb923c;border:1px solid #fb923c;}
+
+.debug-note{font-size:10px;color:var(--muted);text-align:center;margin-top:8px;opacity:0.5;}
+</style>
+</head>
+<body>
+<div class="mg">
+  <div class="mg-title">🎣 Fishing - Minigame Test</div>
+  <div class="mg-sub" id="mg-sub">Select rarity and press HOLD to start</div>
+
+  <span class="state-badge s-free" id="state-badge">FREE</span>
+  <div class="tug-log" id="tug-log">-</div>
+
+  <div class="fish-bar-wrap">
+    <div class="snap-warn"></div>
+    <div class="fish-zone" id="fish-zone"></div>
+    <div class="fish-dot" id="fish-dot">🐟</div>
+  </div>
+  <div class="bar-labels">
+    <span>← Danger (snap)</span>
+    <span>Caught! →</span>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-label">Stamina</div>
+    <div class="stat-track"><div class="stat-fill" id="stam-bar" style="width:100%;background:#f87171;"></div></div>
+    <div class="stat-val" id="stam-val">100%</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-label">Distance</div>
+    <div class="stat-track"><div class="stat-fill" id="dist-bar" style="width:55%;background:#4a9eff;"></div></div>
+    <div class="stat-val" id="dist-val">--m</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-label">Line tension</div>
+    <div class="stat-track"><div class="stat-fill" id="tens-bar" style="width:0%;background:#f97316;"></div></div>
+    <div class="stat-val" id="tens-val">0%</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-label">Reel momentum</div>
+    <div class="stat-track"><div class="stat-fill" id="mom-bar" style="width:0%;background:#4ade80;"></div></div>
+    <div class="stat-val" id="mom-val">0%</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-label">Zone pos</div>
+    <div class="stat-track"><div class="stat-fill" id="zone-bar" style="width:50%;background:#6b7280;"></div></div>
+    <div class="stat-val" id="zone-val">50%</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-label">Fish pos</div>
+    <div class="stat-track"><div class="stat-fill" id="fish-bar" style="width:55%;background:#c9a96e;"></div></div>
+    <div class="stat-val" id="fish-val">55%</div>
+  </div>
+
+  <div class="rarity-row">
+    <button class="r-btn active" onclick="setRarity('common',this)">Common</button>
+    <button class="r-btn" onclick="setRarity('uncommon',this)">Uncommon</button>
+    <button class="r-btn" onclick="setRarity('legendary',this)">Legendary</button>
+  </div>
+
+  <button class="btn-hold" id="btn-hold"
+    onmousedown="holdStart(event)" onmouseup="holdEnd()"
+    ontouchstart="holdStart(event)" ontouchend="holdEnd()">
+    HOLD TO REEL
+  </button>
+
+  <div class="result" id="result"></div>
+  <div class="debug-note">All meters visible. Zone = green when reeling, orange = in zone not holding, red = fish outside zone.</div>
+</div>
+
+<script>
+const CFG = {
+  common: {
+    label:'Common', maxM:8,
+    fishStartMin:0.45, fishStartMax:0.72,
+    winDist:0.93, snapZone:0.08,
+    neutral:0.35, neutralForce:0.055,
+    zoneWidth:0.28,
+    zoneReelAccel:0.85, zoneMaxReelSp:0.26,
+    zoneDriftSp:0.18,
+    stamMax:100,
+    stamDrainReel:26,
+    stamRecoverRate:0.008,
+    stamRecoverCap:0.55,
+    stamFlickerChance:0.006, stamFlickerAmt:7,
+    restMin:1.4, restMax:2.6,
+    tugsMin:0, tugsMax:3,
+    tugDelay:0.20,
+    tugForceBase:0.28,
+    reelingRage:0.10,
+    lungeChanceBase:0.05, lungeChanceExtreme:0.15, lungeForceMulti:3.0,
+    reelForceBase:0.82,
+    reelForceExhaust:1.3,
+    exhaustThresh:0.30,
+    damping:0.86,
+    snapBuildRate:130, snapDrainRate:90,        // tension builds fast when outside zone
+    tensionBuildRate:130, tensionDrainRate:90,  // same rate - one variable for out-of-zone
+    momentumBuildRate:28, momentumDrainRate:20, momentumReelBonus:0.22,
+  },
+  uncommon: {
+    label:'Uncommon', maxM:14,
+    fishStartMin:0.42, fishStartMax:0.68,
+    winDist:0.93, snapZone:0.08,
+    neutral:0.32, neutralForce:0.065,
+    zoneWidth:0.20,
+    zoneReelAccel:0.55, zoneMaxReelSp:0.22,   // faster reel than before
+    zoneDriftSp:0.20,
+    stamMax:130,
+    stamDrainReel:22,
+    stamRecoverRate:0.005,
+    stamRecoverCap:0.50,
+    stamFlickerChance:0.005, stamFlickerAmt:9,
+    restMin:1.0, restMax:2.0,
+    tugsMin:1, tugsMax:4,
+    tugDelay:0.15,
+    tugForceBase:0.40,
+    reelingRage:0.15,
+    lungeChanceBase:0.06, lungeChanceExtreme:0.20, lungeForceMulti:3.2,
+    reelForceBase:0.58, reelForceExhaust:1.1,  // stronger pull
+    exhaustThresh:0.25,
+    damping:0.83,
+    snapBuildRate:120, snapDrainRate:90,
+    tensionBuildRate:120, tensionDrainRate:90,
+    momentumBuildRate:24, momentumDrainRate:22, momentumReelBonus:0.18,
+  },
+  legendary: {
+    label:'Legendary', maxM:22,
+    fishStartMin:0.45, fishStartMax:0.65,
+    winDist:0.93, snapZone:0.08,
+    neutral:0.42,          // idles center, not near danger zone
+    neutralForce:0.045,    // weaker pull to neutral so it doesn't sprint there
+    zoneWidth:0.14,
+    zoneReelAccel:0.40, zoneMaxReelSp:0.16,   // slightly faster than before
+    zoneDriftSp:0.22,
+    stamMax:160,
+    stamDrainReel:18,
+    stamRecoverRate:0.003,
+    stamRecoverCap:0.45,
+    stamFlickerChance:0.004, stamFlickerAmt:11,
+    restMin:0.7, restMax:1.5,
+    tugsMin:1, tugsMax:4,
+    tugDelay:0.13,
+    tugForceBase:0.44,
+    reelingRage:0.18,
+    lungeChanceBase:0.07, lungeChanceExtreme:0.22, lungeForceMulti:3.3,
+    reelForceBase:0.45, reelForceExhaust:0.95, // stronger pull (was 0.35)
+    exhaustThresh:0.22,
+    damping:0.82,
+    snapBuildRate:110, snapDrainRate:90,
+    tensionBuildRate:110, tensionDrainRate:90,
+    momentumBuildRate:20, momentumDrainRate:24, momentumReelBonus:0.14,
+  },
+};
+
+let rarity='common', cfg=CFG.common;
+let fishPos,fishVel,zonePos,zoneSpd,stamina,tension,momentum;
+let isHolding=false,mgActive=false,firstContact=false;
+let raf=null,lastTs=null;
+let burstState='resting',burstTimer=0,tugsRemaining=0,tugTimer=0;
+
+function scheduleRest(){
+  burstState='resting';
+  const sf=Math.max(0,stamina/cfg.stamMax);
+  // low stamina = shorter rests (fish panics), high stamina = longer measured rests
+  burstTimer=(cfg.restMin+Math.random()*(cfg.restMax-cfg.restMin))*(0.4+sf*1.4);
+}
+function startBurst(isGreen){
+  burstState='bursting';
+  const sf=Math.max(0,stamina/cfg.stamMax);
+  const maxT=Math.round(cfg.tugsMin+(cfg.tugsMax-cfg.tugsMin)*sf);
+  tugsRemaining=Math.max(1,cfg.tugsMin+Math.floor(Math.random()*(Math.max(0,maxT-cfg.tugsMin)+1)));
+  tugTimer=0;
+  document.getElementById('tug-log').textContent=`${tugsRemaining} tug${tugsRemaining!==1?'s':''}${isGreen?' ⚡':''}`;
+}
+function fireTug(isGreen){
+  const sf=Math.max(0,stamina/cfg.stamMax);
+  // lunge check - triggers at stamina extremes (fresh or desperate)
+  const isExtreme=sf>0.80||sf<0.10;
+  const lungeChance=isExtreme?cfg.lungeChanceExtreme:cfg.lungeChanceBase;
+  if(Math.random()<lungeChance){
+    // lunge: one big leftward dash, consumes the whole burst
+    fishVel-=cfg.tugForceBase*cfg.lungeForceMulti;
+    tugsRemaining=0;
+    document.getElementById('tug-log').textContent='💨 Lunge!';
+    return;
+  }
+  // normal tug: force scales with stamina
+  const force=cfg.tugForceBase*sf;
+  fishVel-=force+(Math.random()*0.25*force);
+  if(isGreen) fishVel-=cfg.reelingRage*sf;
+}
+
+function init(){
+  cfg=CFG[rarity];
+  fishPos=cfg.fishStartMin+Math.random()*(cfg.fishStartMax-cfg.fishStartMin);
+  fishVel=0;
+  zonePos=Math.max(0,Math.min(1-cfg.zoneWidth, fishPos-cfg.zoneWidth/2));
+  zoneSpd=0;
+  stamina=cfg.stamMax;
+  tension=0;
+  momentum=0;
+  isHolding=false;
+  mgActive=true;
+  firstContact=false;
+  lastTs=null;
+  document.getElementById('fish-zone').style.width=(cfg.zoneWidth*100)+'%';
+  document.getElementById('mg-sub').textContent=cfg.label+' - Hold to reel toward shore!';
+  document.getElementById('result').style.display='none';
+  document.getElementById('tug-log').textContent='-';
+  document.getElementById('btn-hold').classList.remove('held');
+  burstState='resting';
+  scheduleRest();
+  if(raf) cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(tick);
+}
+
+function tick(ts){
+  if(!mgActive) return;
+  if(!lastTs){lastTs=ts;raf=requestAnimationFrame(tick);return;}
+  const dt=Math.min((ts-lastTs)/1000,0.08);
+  lastTs=ts;
+
+  const sf=Math.max(0,stamina/cfg.stamMax);
+  const inZone=fishPos>=zonePos&&fishPos<=(zonePos+cfg.zoneWidth);
+  const isGreen=isHolding&&inZone;
+  const inDanger=fishPos<cfg.snapZone;
+
+  // Burst machine
+  if(burstState==='resting'){
+    burstTimer-=dt;
+    if(burstTimer<=0) startBurst(isGreen);
+  } else {
+    tugTimer-=dt;
+    if(tugTimer<=0){
+      if(tugsRemaining>0){fireTug(isGreen);tugsRemaining--;tugTimer=cfg.tugDelay;}
+      else scheduleRest();
+    }
+  }
+
+  // Stamina
+  if(isGreen){
+    stamina=Math.max(0,stamina-cfg.stamDrainReel*dt);
+    // tiny trickle even while reeling - fish never fully flatlines
+    const cap=cfg.stamMax*cfg.stamRecoverCap;
+    if(stamina<cap) stamina=Math.min(cap,stamina+(cap-stamina)*cfg.stamRecoverRate*0.2*dt*60);
+  } else if(inZone){
+    // orange state - fish in zone, player not holding - fish catches breath
+    const cap=cfg.stamMax*cfg.stamRecoverCap;
+    if(stamina<cap) stamina=Math.min(cap,stamina+(cap-stamina)*cfg.stamRecoverRate*0.5*dt*60);
+  } else {
+    // out of zone - fastest regen
+    const cap=cfg.stamMax*cfg.stamRecoverCap;
+    if(stamina<cap) stamina=Math.min(cap,stamina+(cap-stamina)*cfg.stamRecoverRate*dt*60);
+  }
+  if(stamina<12&&Math.random()<cfg.stamFlickerChance){
+    stamina=Math.min(cfg.stamMax*0.18,stamina+cfg.stamFlickerAmt);
+    document.getElementById('tug-log').textContent='⚡ Second wind!';
+  }
+
+  // Momentum
+  if(isGreen) momentum=Math.min(100,momentum+cfg.momentumBuildRate*dt);
+  else        momentum=Math.max(0,momentum-cfg.momentumDrainRate*dt);
+
+  // First contact - tension is frozen until zone touches fish at least once
+  if(inZone) firstContact=true;
+
+  // Tension
+  if(!firstContact){
+    tension=0;
+  } else if(inDanger)     tension=Math.min(100,tension+cfg.snapBuildRate*dt);
+  else if(!inZone)        tension=Math.min(100,tension+cfg.tensionBuildRate*dt);
+  else                    tension=Math.max(0,tension-cfg.tensionDrainRate*dt);
+
+  // Fish forces
+  if(isGreen){
+    const ex=Math.max(0,1-(sf/cfg.exhaustThresh));
+    const reelF=cfg.reelForceBase*(1+cfg.reelForceExhaust*ex);
+    const momB=(momentum/100)*cfg.momentumReelBonus;
+    fishVel+=(reelF+momB)*dt;
+  } else {
+    const toNeutral=cfg.neutral-fishPos;
+    fishVel+=toNeutral*cfg.neutralForce*dt*60;
+    if(sf<0.2) fishVel*=Math.pow(0.25,dt*60);
+  }
+
+  // Physics
+  fishVel*=Math.pow(cfg.damping,dt*60);
+  fishPos+=fishVel*dt;
+  fishPos=Math.max(0,Math.min(1,fishPos));
+
+  // Zone movement
+  if(isHolding){
+    zoneSpd=Math.min(cfg.zoneMaxReelSp,zoneSpd+cfg.zoneReelAccel*dt);
+    zonePos+=zoneSpd*dt;
+  } else {
+    zoneSpd=0;
+    zonePos-=cfg.zoneDriftSp*dt;
+  }
+  zonePos=Math.max(0,Math.min(1-cfg.zoneWidth,zonePos));
+
+  // Win/Lose
+  if(fishPos>=cfg.winDist){end('catch');return;}
+  if(tension>=100)        {end('snap'); return;}
+
+  updateUI(isGreen,inZone,inDanger);
+  raf=requestAnimationFrame(tick);
+}
+
+function updateUI(isGreen,inZone,inDanger){
+  document.getElementById('fish-dot').style.left=(fishPos*100)+'%';
+
+  const zone=document.getElementById('fish-zone');
+  zone.style.left=(zonePos*100)+'%';
+  zone.className='fish-zone';
+  if(!isGreen&&inZone)  zone.classList.add('orange');
+  else if(!inZone)      zone.classList.add('off');
+
+  const badge=document.getElementById('state-badge');
+  if(isGreen)       {badge.textContent='REELING';               badge.className='state-badge s-reel';}
+  else if(inZone)   {badge.textContent='IN ZONE - not holding'; badge.className='state-badge s-orange';}
+  else if(inDanger) {badge.textContent='DANGER - snapping!';    badge.className='state-badge s-free';}
+  else              {badge.textContent='FREE - tension rising';  badge.className='state-badge s-free';}
+
+  const sp=(stamina/cfg.stamMax)*100;
+  const sb=document.getElementById('stam-bar');
+  sb.style.width=sp+'%';
+  sb.style.background=sp<20?'#f97316':sp<45?'#eab308':'#f87171';
+  document.getElementById('stam-val').textContent=Math.round(sp)+'%';
+
+  document.getElementById('dist-bar').style.width=(fishPos*100)+'%';
+  document.getElementById('dist-val').textContent=Math.max(0,Math.round((1-fishPos)*cfg.maxM))+'m';
+
+  const tb=document.getElementById('tens-bar');
+  tb.style.width=tension+'%';
+  tb.style.background=tension>70?'#ef4444':tension>40?'#f97316':'#fb923c';
+  document.getElementById('tens-val').textContent=Math.round(tension)+'%';
+
+  document.getElementById('mom-bar').style.width=momentum+'%';
+  document.getElementById('mom-val').textContent=Math.round(momentum)+'%';
+
+  document.getElementById('zone-bar').style.width=(zonePos*100)+'%';
+  document.getElementById('zone-val').textContent=Math.round(zonePos*100)+'%';
+
+  document.getElementById('fish-bar').style.width=(fishPos*100)+'%';
+  document.getElementById('fish-val').textContent=Math.round(fishPos*100)+'%';
+}
+
+function end(outcome){
+  mgActive=false;isHolding=false;
+  document.getElementById('btn-hold').classList.remove('held');
+  if(raf) cancelAnimationFrame(raf);
+  const r=document.getElementById('result');
+  r.style.display='block';
+  r.className='result '+(outcome==='catch'?'catch':'snap');
+  r.textContent=outcome==='catch'
+    ?'🎉 Caught it! - Hold to fish again'
+    :'💥 Line snapped! - Hold to try again';
+  updateUI(false,false,false);
+}
+
+function holdStart(e){
+  if(e) e.preventDefault();
+  isHolding=true;
+  document.getElementById('btn-hold').classList.add('held');
+  if(!mgActive) init();
+}
+function holdEnd(){
+  isHolding=false;
+  document.getElementById('btn-hold').classList.remove('held');
+}
+function setRarity(r,btn){
+  rarity=r;
+  document.querySelectorAll('.r-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  init();
+}
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();holdStart(null);}});
+document.addEventListener('keyup',  e=>{if(e.code==='Space') holdEnd();});
+
+init();
+</script>
+</body>
+</html>
