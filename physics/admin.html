@@ -128,7 +128,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
         <div class="page-header-left"><h2>Students</h2><p>Per-student XP, belts, title. Click a row to edit. Whitelist controls access.</p></div>
         <button class="btn btn-gold" onclick="openAddStudent()">+ Add Student</button>
       </div>
-      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Student</th><th>Title</th><th>XP</th><th>Belts Passed</th><th>Highest Belt</th><th>Whitelisted</th><th>Edit</th></tr></thead><tbody id="students-tbody"></tbody></table></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Student</th><th>Title</th><th>XP</th><th>Fish Pts</th><th>Belts Passed</th><th>Chapters Active</th><th>Highest Belt</th><th>Whitelisted</th><th>Edit</th></tr></thead><tbody id="students-tbody"></tbody></table></div>
     </div>
 
     <div class="section-page" id="section-questions">
@@ -364,7 +364,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const BELT_COLORS = {white:'#f0f0f0',yellow:'#f5c842',orange:'#f5852a',blue:'#4a90d9',brown:'#a0623a',black:'#888888'};
 const BELTS = ['white','yellow','orange','blue','brown','black'];
-let user, chapters=[], whitelist=[], profiles=[], progress=[], questions=[], shopItems=[];
+let user, chapters=[], whitelist=[], profiles=[], progress=[], questions=[], shopItems=[], fishPoints={};
 let questionCounts = {}; // { chapter_id: { white:0, yellow:0, ... } } — used for summary grid
 let editingChapterId = null, editingStudentId = null, editingShopItemId = null;
 
@@ -398,18 +398,22 @@ async function init() {
 }
 
 async function loadAll() {
-  const [ch, wl, pr, prog, si] = await Promise.all([
+  const [ch, wl, pr, prog, si, fc] = await Promise.all([
     sb.from('chapters').select('*').order('sort_order'),
     sb.from('email_whitelist').select('*').order('added_at'),
     sb.from('profiles').select('*').order('created_at'),
     sb.from('progress').select('*').order('updated_at', {ascending:false}),
     sb.from('shop_items').select('*').order('sort_order'),
+    sb.from('fish_catches').select('user_id, points').eq('won', true),
   ]);
   chapters = ch.data || [];
   whitelist = wl.data || [];
   profiles = pr.data || [];
   progress = prog.data || [];
   shopItems = si.data || [];
+  // Build fishPoints map: { user_id → total points }
+  fishPoints = {};
+  (fc.data || []).forEach(r => { fishPoints[r.user_id] = (fishPoints[r.user_id] || 0) + (r.points || 0); });
 
   // Paginated fetch of chapter_id+belt — bypasses Supabase's 1000-row server cap
   const PAGE = 1000;
@@ -549,7 +553,7 @@ function renderMatrix() {
 function renderStudents() {
   const tbody = document.getElementById('students-tbody');
   if (!profiles.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="padding:20px;color:var(--text3);font-family:var(--font-mono);font-size:12px;">No users yet.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="padding:20px;color:var(--text3);font-family:var(--font-mono);font-size:12px;">No users yet.</td></tr>`;
     return;
   }
   // Sort: students first, then teachers
@@ -561,12 +565,14 @@ function renderStudents() {
     const inWhitelist = whitelist.some(w => w.email === s.email);
     const studentProgress = progress.filter(p => p.student_id === s.id);
     const beltsPassed = studentProgress.filter(p => p.passed).length;
+    const chaptersActive = new Set(studentProgress.filter(p => p.passed).map(p => p.chapter_id)).size;
     const beltOrder = ['white','yellow','orange','blue','brown','black'];
     let highestBelt = '—';
     for (let i = beltOrder.length-1; i >= 0; i--) {
       if (studentProgress.some(p => p.belt === beltOrder[i] && p.passed)) { highestBelt = beltOrder[i]; break; }
     }
     const xp = s.xp || 0;
+    const fishPts = fishPoints[s.id] || 0;
     const title = s.title || 'Cadet';
     const email = s.email || '—';
     const beltColor = BELT_COLORS[highestBelt] || null;
@@ -578,7 +584,9 @@ function renderStudents() {
       </td>
       <td><span class="badge badge-gold">${title}</span></td>
       <td style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--gold);">⚡ ${xp.toLocaleString()}</td>
+      <td style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--teal);">🎣 ${fishPts}</td>
       <td style="font-family:var(--font-display);font-size:13px;font-weight:700;">${beltsPassed}</td>
+      <td style="font-family:var(--font-display);font-size:13px;font-weight:700;">${chaptersActive} <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">/ ${chapters.length}</span></td>
       <td>${highestBelt !== '—' ? `<span class="bdot" style="background:${beltColor};border-color:${beltColor};"></span> ${highestBelt}` : '—'}</td>
       <td><span class="badge ${inWhitelist?'badge-green':'badge-grey'}">${inWhitelist?'✓':'✗'}</span></td>
       <td onclick="event.stopPropagation()">
@@ -644,6 +652,12 @@ async function saveStudent() {
       btn.textContent = 'Create Student →';
       btn.disabled = false;
       return;
+    }
+
+    // Backfill email into profiles so leaderboard can display it
+    const newUserId = result.user?.id || result.id;
+    if (newUserId) {
+      await sb.from('profiles').update({ email }).eq('id', newUserId);
     }
 
     // Show success box with credentials

@@ -55,6 +55,7 @@
       <div class="stat-chip"><div class="stat-chip-num" id="stat-chapters">0</div><div class="stat-chip-label">Unlocked</div></div>
       <div class="stat-chip"><div class="stat-chip-num" id="stat-belts">0</div><div class="stat-chip-label">Belts Earned</div></div>
       <div class="stat-chip"><div class="stat-chip-num" id="stat-highest">—</div><div class="stat-chip-label">Highest Belt</div></div>
+      <div class="stat-chip"><div class="stat-chip-num" id="stat-breadth">0</div><div class="stat-chip-label">Chapters Active</div></div>
       <!-- Streak chip -->
       <div class="stat-chip" id="streak-chip" style="display:none;">
         <div class="stat-chip-num" id="stat-streak" style="color:#f5852a;">0🔥</div>
@@ -242,10 +243,12 @@ function renderDashboard() {
 
   // Use real XP from profile, fallback to calculated
   const xp = profile?.xp || Math.round(progress.reduce((s,p)=>s+(p.best_score||0),0));
+  const chaptersActive = new Set(progress.filter(p=>p.passed).map(p=>p.chapter_id)).size;
   document.getElementById('stat-xp').textContent = xp.toLocaleString();
   document.getElementById('stat-chapters').textContent = unlocked;
   document.getElementById('stat-belts').textContent = totalBelts;
   document.getElementById('stat-highest').textContent = highest;
+  document.getElementById('stat-breadth').textContent = chaptersActive;
 
   // Streak
   const streak = profile?.streak_days || 0;
