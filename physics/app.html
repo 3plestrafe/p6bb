@@ -323,7 +323,7 @@ function renderModalProgress() {
 
     if (!unlocked) {
       // Locked belt — greyed out, not clickable
-      return `<div class="belt-progress-row locked-row" style="border-left:3px solid #2a2a2a;">
+      return `<div class="belt-progress-row locked-row" style="border-left:3px solid #333;">
         <div class="belt-pip-dot" style="background:#2a2a2a;border:1px solid #333;"></div>
         <div class="belt-pip-name" style="color:var(--text3);">${b.label} Belt <span>— ${b.goal}</span></div>
         <div class="belt-pip-status locked-s">🔒 Locked</div>
@@ -348,7 +348,7 @@ function renderModalProgress() {
     const attemptsLabel = attempts > 0 ? `${attempts} attempt${attempts!==1?'s':''} · Best: ${best}%` : 'Not started yet';
     const XP_BY_BELT = {white:2,yellow:3,orange:5,blue:7,brown:10,black:15};
     const xpLabel = `${XP_BY_BELT[b.id]||5} XP per correct answer`;
-    return `<div class="belt-progress-row current-row" style="flex-direction:column;align-items:stretch;gap:12px;padding:16px;border-left:3px solid ${b.color};">
+    return `<div class="belt-progress-row current-row" style="flex-direction:column;align-items:stretch;gap:12px;padding:16px;border-left:3px solid ${b.color};border-top:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);">
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="belt-pip-dot" style="background:${b.color};width:14px;height:14px;"></div>
         <div style="flex:1;">
