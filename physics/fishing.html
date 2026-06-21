@@ -317,7 +317,8 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
             <div class="hold-wrap">
               <button class="btn-hold" id="btn-hold"
                 onmousedown="holdStart(event)" onmouseup="holdEnd()"
-                ontouchstart="holdStart(event)" ontouchend="holdEnd()">
+                ontouchstart="holdStart(event)" ontouchend="holdEnd()"
+                onclick="console.log('[reel] btn clicked — isMuted:',isMuted,'mgActive:',mgActive)">
                 HOLD TO REEL
               </button>
             </div>
