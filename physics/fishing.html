@@ -1087,22 +1087,18 @@ function playCatchSequence() {
 }
 
 function startReelLoop() {
-  initAudio();
-  if (isMuted || !audioReady) return;
-  if (reelLoopActive) return;
+  if (isMuted) return;
   reelLoopActive = true;
-  const r = audio['sfx-reel'];
+  const r = new Audio('assets/audio/sfx-reel.mp3');
   r.loop = true;
-  r.currentTime = 0;
-  r.volume = Math.min(1, masterVolume * 0.7);
-  r.play().then(()=>console.log('[audio] reel started')).catch(e=>console.warn('[audio] reel failed:', e));
+  r.volume = masterVolume * 0.7;
+  r.play();
+  window._reelEl = r;
 }
 
 function stopReelLoop() {
-  if (!reelLoopActive) return;
   reelLoopActive = false;
-  const r = audio['sfx-reel'];
-  if (r) { r.pause(); r.currentTime = 0; }
+  if (window._reelEl) { window._reelEl.pause(); window._reelEl = null; }
 }
 
 function toggleMute() {
