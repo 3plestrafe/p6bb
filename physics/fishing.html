@@ -707,7 +707,7 @@ function openMinigame() {
   fishVel=0;
   zonePos=Math.max(0,Math.min(1-mgCfg.zoneWidth,fishPos-mgCfg.zoneWidth/2));
   zoneSpd=0; stamina=mgCfg.stamMax; tension=0; momentum=0;
-  isHolding=false; firstContact=false;
+  isHolding=false; firstContact=false; reelLoopActive=false;
 
   document.getElementById('fish-dot').textContent='🐠'; // always generic - reveal on catch
   document.getElementById('fish-zone').style.width=(mgCfg.zoneWidth*100)+'%';
