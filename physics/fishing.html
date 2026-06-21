@@ -593,7 +593,8 @@ function updateCastBtn() {
 // ══════════════════════════════════════════════
 
 async function startCast() {
-  initAudio(); // first interaction - safe to start audio now
+  initAudio();
+  playBgIdle(); // start idle music on first cast click (guaranteed user gesture)
   const bait=BAIT.find(b=>b.id===selBait);
 
   // Disable cast button immediately to prevent double-clicks
@@ -1040,25 +1041,24 @@ function initAudio() {
       el.loop = true;
     }
     audio[key] = el;
+    console.log('[audio] loaded', key, src);
   });
-  // Start idle music after first user interaction
-  playBgIdle();
 }
 
 function playBgIdle() {
-  if (isMuted) return;
+  if (isMuted || !audioReady) return;
   stopBg();
   audio['bg-idle'].currentTime = 0;
   audio['bg-idle'].volume = 0.5;
-  audio['bg-idle'].play().catch(()=>{});
+  audio['bg-idle'].play().then(()=>console.log('[audio] bg-idle playing')).catch(e=>console.warn('[audio] bg-idle failed:', e));
 }
 
 function playBgAction() {
-  if (isMuted) return;
+  if (isMuted || !audioReady) return;
   stopBg();
   audio['bg-action'].currentTime = 0;
   audio['bg-action'].volume = 0.6;
-  audio['bg-action'].play().catch(()=>{});
+  audio['bg-action'].play().then(()=>console.log('[audio] bg-action playing')).catch(e=>console.warn('[audio] bg-action failed:', e));
 }
 
 function stopBg() {
@@ -1069,11 +1069,11 @@ function stopBg() {
 }
 
 function playSfx(key, volume) {
-  if (isMuted || !audio[key]) return;
+  if (isMuted || !audioReady || !audio[key]) return;
   audio[key].pause();
   audio[key].currentTime = 0;
   audio[key].volume = volume ?? 0.8;
-  audio[key].play().catch(()=>{});
+  audio[key].play().then(()=>console.log('[audio] sfx playing:', key)).catch(e=>console.warn('[audio] sfx failed:', key, e));
 }
 
 // After catch voice finishes, play chime
