@@ -215,6 +215,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
     <div id="nav-xp-badge" style="display:none;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:4px 12px;letter-spacing:0.04em;">
       ⚡ <span id="nav-xp">0</span> XP
     </div>
+    <button class="nav-btn" id="btn-mute" onclick="toggleMute()" title="Toggle sound">🔊 Sound</button>
     <a class="nav-btn" href="app.html" style="text-decoration:none;">← Dashboard</a>
     <button class="nav-btn" onclick="signOut()">Sign out</button>
   </div>
@@ -592,6 +593,7 @@ function updateCastBtn() {
 // ══════════════════════════════════════════════
 
 async function startCast() {
+  initAudio(); // first interaction - safe to start audio now
   const bait=BAIT.find(b=>b.id===selBait);
 
   // Disable cast button immediately to prevent double-clicks
@@ -640,6 +642,8 @@ async function startCast() {
   setTimeout(()=>{line.style.height='90px';},100);
   setTimeout(()=>{bobber.className='bobber idle';},600);
 
+  playSfx('sfx-getready', 0.9);
+  setTimeout(()=>playSfx('sfx-cast', 0.8), 800);
   setStatus('Waiting for a bite...','');
 
   const wait=2500+Math.random()*4000;
@@ -676,6 +680,7 @@ function startBurst(isGreen) {
   document.getElementById('tug-log').textContent=`${tugsRemaining} tug${tugsRemaining!==1?'s':''}${isGreen?' ⚡':''}`;
 }
 function fireTug(isGreen) {
+  playSfx('sfx-tug', 0.6);
   const sf=Math.max(0,stamina/mgCfg.stamMax);
   const isExtreme=sf>0.80||sf<0.10;
   const lungeChance=isExtreme?mgCfg.lungeChanceExtreme:mgCfg.lungeChanceBase;
@@ -709,6 +714,15 @@ function openMinigame() {
   document.getElementById('state-badge').className='state-badge s-orange';
   document.getElementById('mg-anchor').style.display='block';
   document.getElementById('mg-panel').classList.add('active');
+
+  // Play sfx-start voice, then kick off bg-action music after it ends
+  playSfx('sfx-start', 0.9);
+  if (audio['sfx-start']) {
+    audio['sfx-start'].onended = () => {
+      playBgAction();
+      audio['sfx-start'].onended = null;
+    };
+  }
 
   // 0.5s grace - panel + HOLD button visible before physics starts
   mgActive=false; lastTs=null; burstState='resting';
@@ -841,10 +855,12 @@ function holdStart(e) {
   if(e) e.preventDefault();
   isHolding=true;
   document.getElementById('btn-hold').classList.add('held');
+  startReelLoop();
 }
 function holdEnd() {
   isHolding=false;
   document.getElementById('btn-hold').classList.remove('held');
+  stopReelLoop();
 }
 
 function endMinigame(success) {
@@ -853,6 +869,10 @@ function endMinigame(success) {
   if(raf) cancelAnimationFrame(raf);
   document.getElementById('mg-panel').classList.remove('active');
   document.getElementById('mg-anchor').style.display='none';
+
+  // Stop minigame audio
+  stopReelLoop();
+  stopBg();
 
   // Reset rod scene
   document.getElementById('fishing-line').style.height='0px';
@@ -869,8 +889,10 @@ function endMinigame(success) {
       rarity:currentItem.rarity, emoji:currentItem.emoji,
       pts:currentItem.pts,
     };
+    playCatchSequence();
     showCatchFlash(true,rec);
   } else {
+    playSfx('sfx-miss', 0.85);
     showCatchFlash(false,null);
   }
 }
@@ -918,6 +940,7 @@ function showCatchFlash(success,rec) {
 async function closeCatchFlash() {
   document.getElementById('catch-flash').classList.remove('active');
   document.getElementById('selector-block').style.display='flex';
+  playBgIdle(); // back to idle music
   // Wait for resolve_cast to finish before refreshing collection
   if (window._resolvePromise) {
     await window._resolvePromise;
@@ -984,6 +1007,115 @@ async function renderCollection() {
 }
 
 boot();
+
+// ══════════════════════════════════════════════
+//  AUDIO
+// ══════════════════════════════════════════════
+
+const AUDIO_FILES = {
+  'bg-idle':        'assets/audio/bg-idle.mp3',
+  'bg-action':      'assets/audio/bg-action.mp3',
+  'sfx-getready':   'assets/audio/sfx-getready.mp3',
+  'sfx-cast':       'assets/audio/sfx-cast.mp3',
+  'sfx-start':      'assets/audio/sfx-start.mp3',
+  'sfx-reel':       'assets/audio/sfx-reel.mp3',
+  'sfx-tug':        'assets/audio/sfx-tug.mp3',
+  'sfx-catch':      'assets/audio/sfx-catch.mp3',
+  'sfx-catch-chime':'assets/audio/sfx-catch-chime.mp3',
+  'sfx-miss':       'assets/audio/sfx-miss.mp3',
+};
+
+const audio = {};
+let audioReady = false;
+let isMuted = false;
+let reelLoopActive = false;
+
+function initAudio() {
+  if (audioReady) return;
+  audioReady = true;
+  Object.entries(AUDIO_FILES).forEach(([key, src]) => {
+    const el = new Audio(src);
+    el.preload = 'auto';
+    if (key === 'bg-idle' || key === 'bg-action' || key === 'sfx-reel') {
+      el.loop = true;
+    }
+    audio[key] = el;
+  });
+  // Start idle music after first user interaction
+  playBgIdle();
+}
+
+function playBgIdle() {
+  if (isMuted) return;
+  stopBg();
+  audio['bg-idle'].currentTime = 0;
+  audio['bg-idle'].volume = 0.5;
+  audio['bg-idle'].play().catch(()=>{});
+}
+
+function playBgAction() {
+  if (isMuted) return;
+  stopBg();
+  audio['bg-action'].currentTime = 0;
+  audio['bg-action'].volume = 0.6;
+  audio['bg-action'].play().catch(()=>{});
+}
+
+function stopBg() {
+  audio['bg-idle']?.pause();
+  if (audio['bg-idle']) audio['bg-idle'].currentTime = 0;
+  audio['bg-action']?.pause();
+  if (audio['bg-action']) audio['bg-action'].currentTime = 0;
+}
+
+function playSfx(key, volume) {
+  if (isMuted || !audio[key]) return;
+  audio[key].pause();
+  audio[key].currentTime = 0;
+  audio[key].volume = volume ?? 0.8;
+  audio[key].play().catch(()=>{});
+}
+
+// After catch voice finishes, play chime
+function playCatchSequence() {
+  if (isMuted) return;
+  playSfx('sfx-catch', 0.9);
+  audio['sfx-catch'].onended = () => {
+    playSfx('sfx-catch-chime', 0.8);
+    audio['sfx-catch'].onended = null;
+  };
+}
+
+function startReelLoop() {
+  if (isMuted || reelLoopActive || !audio['sfx-reel']) return;
+  reelLoopActive = true;
+  audio['sfx-reel'].currentTime = 0;
+  audio['sfx-reel'].volume = 0.5;
+  audio['sfx-reel'].play().catch(()=>{});
+}
+
+function stopReelLoop() {
+  reelLoopActive = false;
+  if (audio['sfx-reel']) {
+    audio['sfx-reel'].pause();
+    audio['sfx-reel'].currentTime = 0;
+  }
+}
+
+function toggleMute() {
+  isMuted = !isMuted;
+  const btn = document.getElementById('btn-mute');
+  btn.textContent = isMuted ? '🔇 Sound' : '🔊 Sound';
+  if (isMuted) {
+    stopBg();
+    stopReelLoop();
+    Object.values(audio).forEach(a => { try { a.pause(); } catch(e){} });
+  } else {
+    // Resume appropriate state
+    if (mgActive) playBgAction();
+    else playBgIdle();
+  }
+}
 </script>
 </body>
 </html>
