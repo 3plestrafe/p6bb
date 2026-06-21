@@ -317,8 +317,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
             <div class="hold-wrap">
               <button class="btn-hold" id="btn-hold"
                 onmousedown="holdStart(event)" onmouseup="holdEnd()"
-                ontouchstart="holdStart(event)" ontouchend="holdEnd()"
-                onclick="console.log('[reel] btn clicked — isMuted:',isMuted,'mgActive:',mgActive)">
+                ontouchstart="holdStart(event)" ontouchend="holdEnd()">
                 HOLD TO REEL
               </button>
             </div>
@@ -893,7 +892,7 @@ function endMinigame(success) {
   } else {
     const missEl = new Audio('assets/audio/sfx-miss.mp3');
     missEl.volume = Math.min(1, masterVolume * 0.85);
-    missEl.play().catch(e=>console.warn('[audio] sfx-miss failed:', e));
+    missEl.play().catch(()=>{});
     missEl.onended = () => { playBgIdle(); };
     showCatchFlash(false,null);
   }
@@ -1041,7 +1040,6 @@ function initAudio() {
       el.loop = true;
     }
     audio[key] = el;
-    console.log('[audio] loaded', key, src);
   });
 }
 
@@ -1050,7 +1048,7 @@ function playBgIdle() {
   stopBg();
   audio['bg-idle'].currentTime = 0;
   audio['bg-idle'].volume = masterVolume * 0.8;
-  audio['bg-idle'].play().then(()=>console.log('[audio] bg-idle playing')).catch(e=>console.warn('[audio] bg-idle failed:', e));
+  audio['bg-idle'].play().catch(()=>{});
 }
 
 function playBgAction() {
@@ -1058,7 +1056,7 @@ function playBgAction() {
   stopBg();
   audio['bg-action'].currentTime = 0;
   audio['bg-action'].volume = masterVolume;
-  audio['bg-action'].play().then(()=>console.log('[audio] bg-action playing')).catch(e=>console.warn('[audio] bg-action failed:', e));
+  audio['bg-action'].play().catch(()=>{});
 }
 
 function stopBg() {
@@ -1073,7 +1071,7 @@ function playSfx(key, relVolume) {
   audio[key].pause();
   audio[key].currentTime = 0;
   audio[key].volume = Math.min(1, masterVolume * (relVolume ?? 1));
-  audio[key].play().then(()=>console.log('[audio] sfx playing:', key)).catch(e=>console.warn('[audio] sfx failed:', key, e));
+  audio[key].play().catch(()=>{});
 }
 
 // Play catch voice + chime simultaneously, then bg-idle after catch voice ends
@@ -1081,7 +1079,7 @@ function playCatchSequence() {
   // sfx-catch and sfx-catch-chime play at the same time
   const catchEl = new Audio('assets/audio/sfx-catch.mp3');
   catchEl.volume = Math.min(1, masterVolume * 0.9);
-  catchEl.play().catch(e=>console.warn('[audio] sfx-catch failed:', e));
+  catchEl.play().catch(()=>{});
   catchEl.onended = () => { playBgIdle(); };
 
   playSfx('sfx-catch-chime', 0.8);
