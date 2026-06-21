@@ -887,12 +887,13 @@ function endMinigame(success) {
       rarity:currentItem.rarity, emoji:currentItem.emoji,
       pts:currentItem.pts,
     };
-    playCatchSequence();
-    playBgIdle(); // start bg music immediately on success, don't wait for flash close
+    playCatchSequence(); // plays sfx-catch + chime, then fires playBgIdle when done
     showCatchFlash(true,rec);
   } else {
-    playSfx('sfx-miss', 0.85);
-    playBgIdle();
+    const missEl = new Audio('assets/audio/sfx-miss.mp3');
+    missEl.volume = Math.min(1, masterVolume * 0.85);
+    missEl.play().catch(e=>console.warn('[audio] sfx-miss failed:', e));
+    missEl.onended = () => { playBgIdle(); };
     showCatchFlash(false,null);
   }
 }
@@ -1074,15 +1075,21 @@ function playSfx(key, relVolume) {
   audio[key].play().then(()=>console.log('[audio] sfx playing:', key)).catch(e=>console.warn('[audio] sfx failed:', key, e));
 }
 
-// Play catch voice + chime simultaneously
+// Play catch voice + chime simultaneously, then bg-idle after catch voice ends
 function playCatchSequence() {
-  playSfx('sfx-catch', 0.9);
+  // sfx-catch and sfx-catch-chime play at the same time
+  const catchEl = new Audio('assets/audio/sfx-catch.mp3');
+  catchEl.volume = Math.min(1, masterVolume * 0.9);
+  catchEl.play().catch(e=>console.warn('[audio] sfx-catch failed:', e));
+  catchEl.onended = () => { playBgIdle(); };
+
   playSfx('sfx-catch-chime', 0.8);
 }
 
 let reelEl = null; // dedicated element for reel loop, separate from audio[] pool
 
 function startReelLoop() {
+  initAudio(); // ensure audio is ready even if mute toggle was never pressed
   if (isMuted || !audioReady) return;
   if (reelLoopActive) return;
   reelLoopActive = true;
