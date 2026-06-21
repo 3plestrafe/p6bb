@@ -215,7 +215,13 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
     <div id="nav-xp-badge" style="display:none;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:4px 12px;letter-spacing:0.04em;">
       ⚡ <span id="nav-xp">0</span> XP
     </div>
-    <button class="nav-btn" id="btn-mute" onclick="toggleMute()" title="Toggle sound">🔊 Sound</button>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="nav-btn" id="btn-mute" onclick="toggleMute()" title="Toggle sound" style="padding:5px 8px;">🔇</button>
+      <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.6"
+        oninput="setVolume(this.value)"
+        style="width:70px;height:4px;accent-color:var(--gold);cursor:pointer;opacity:0.4;pointer-events:none;"
+        disabled title="Volume"/>
+    </div>
     <a class="nav-btn" href="app.html" style="text-decoration:none;">← Dashboard</a>
     <button class="nav-btn" onclick="signOut()">Sign out</button>
   </div>
@@ -593,8 +599,6 @@ function updateCastBtn() {
 // ══════════════════════════════════════════════
 
 async function startCast() {
-  initAudio();
-  playBgIdle(); // start idle music on first cast click (guaranteed user gesture)
   const bait=BAIT.find(b=>b.id===selBait);
 
   // Disable cast button immediately to prevent double-clicks
@@ -681,7 +685,6 @@ function startBurst(isGreen) {
   document.getElementById('tug-log').textContent=`${tugsRemaining} tug${tugsRemaining!==1?'s':''}${isGreen?' ⚡':''}`;
 }
 function fireTug(isGreen) {
-  playSfx('sfx-tug', 0.6);
   const sf=Math.max(0,stamina/mgCfg.stamMax);
   const isExtreme=sf>0.80||sf<0.10;
   const lungeChance=isExtreme?mgCfg.lungeChanceExtreme:mgCfg.lungeChanceBase;
@@ -1020,7 +1023,6 @@ const AUDIO_FILES = {
   'sfx-cast':       'assets/audio/sfx-cast.mp3',
   'sfx-start':      'assets/audio/sfx-start.mp3',
   'sfx-reel':       'assets/audio/sfx-reel.mp3',
-  'sfx-tug':        'assets/audio/sfx-tug.mp3',
   'sfx-catch':      'assets/audio/sfx-catch.mp3',
   'sfx-catch-chime':'assets/audio/sfx-catch-chime.mp3',
   'sfx-miss':       'assets/audio/sfx-miss.mp3',
@@ -1028,7 +1030,8 @@ const AUDIO_FILES = {
 
 const audio = {};
 let audioReady = false;
-let isMuted = false;
+let isMuted = true; // default off
+let masterVolume = 0.6;
 let reelLoopActive = false;
 
 function initAudio() {
@@ -1049,7 +1052,7 @@ function playBgIdle() {
   if (isMuted || !audioReady) return;
   stopBg();
   audio['bg-idle'].currentTime = 0;
-  audio['bg-idle'].volume = 0.5;
+  audio['bg-idle'].volume = masterVolume * 0.8;
   audio['bg-idle'].play().then(()=>console.log('[audio] bg-idle playing')).catch(e=>console.warn('[audio] bg-idle failed:', e));
 }
 
@@ -1057,7 +1060,7 @@ function playBgAction() {
   if (isMuted || !audioReady) return;
   stopBg();
   audio['bg-action'].currentTime = 0;
-  audio['bg-action'].volume = 0.6;
+  audio['bg-action'].volume = masterVolume;
   audio['bg-action'].play().then(()=>console.log('[audio] bg-action playing')).catch(e=>console.warn('[audio] bg-action failed:', e));
 }
 
@@ -1068,11 +1071,11 @@ function stopBg() {
   if (audio['bg-action']) audio['bg-action'].currentTime = 0;
 }
 
-function playSfx(key, volume) {
+function playSfx(key, relVolume) {
   if (isMuted || !audioReady || !audio[key]) return;
   audio[key].pause();
   audio[key].currentTime = 0;
-  audio[key].volume = volume ?? 0.8;
+  audio[key].volume = Math.min(1, masterVolume * (relVolume ?? 1));
   audio[key].play().then(()=>console.log('[audio] sfx playing:', key)).catch(e=>console.warn('[audio] sfx failed:', key, e));
 }
 
@@ -1087,10 +1090,10 @@ function playCatchSequence() {
 }
 
 function startReelLoop() {
-  if (isMuted || reelLoopActive || !audio['sfx-reel']) return;
+  if (isMuted || !audioReady || reelLoopActive || !audio['sfx-reel']) return;
   reelLoopActive = true;
   audio['sfx-reel'].currentTime = 0;
-  audio['sfx-reel'].volume = 0.5;
+  audio['sfx-reel'].volume = Math.min(1, masterVolume * 0.7);
   audio['sfx-reel'].play().catch(()=>{});
 }
 
@@ -1103,18 +1106,30 @@ function stopReelLoop() {
 }
 
 function toggleMute() {
+  initAudio();
   isMuted = !isMuted;
   const btn = document.getElementById('btn-mute');
-  btn.textContent = isMuted ? '🔇 Sound' : '🔊 Sound';
+  const slider = document.getElementById('volume-slider');
+  btn.textContent = isMuted ? '🔇' : '🔊';
+  slider.disabled = isMuted;
+  slider.style.opacity = isMuted ? '0.4' : '1';
+  slider.style.pointerEvents = isMuted ? 'none' : 'auto';
   if (isMuted) {
     stopBg();
     stopReelLoop();
     Object.values(audio).forEach(a => { try { a.pause(); } catch(e){} });
   } else {
-    // Resume appropriate state
     if (mgActive) playBgAction();
     else playBgIdle();
   }
+}
+
+function setVolume(val) {
+  masterVolume = parseFloat(val);
+  // Update any currently playing audio live
+  if (audio['bg-idle'])   audio['bg-idle'].volume   = masterVolume * 0.8;
+  if (audio['bg-action']) audio['bg-action'].volume  = masterVolume;
+  if (audio['sfx-reel'])  audio['sfx-reel'].volume   = Math.min(1, masterVolume * 0.7);
 }
 </script>
 </body>
