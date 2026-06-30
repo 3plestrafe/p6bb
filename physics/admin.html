@@ -270,6 +270,10 @@ body{display:flex;flex-direction:column;min-height:100vh;}
       <div class="form-group" style="margin-top:4px;"><label>Reset a Belt (removes passed status for that chapter+belt)</label>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;" id="sem-belt-resets"></div>
       </div>
+      <div class="form-group" style="margin-top:4px;"><label>Fishing</label>
+        <button class="btn btn-danger" style="padding:6px 14px;font-size:11px;" onclick="confirmResetFish()">🐟 Reset Fish Points to 0</button>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:6px;">Clears this student's fishing collection &amp; points. Does not affect XP.</div>
+      </div>
       <div id="sem-msg" class="msg" style="margin-top:8px;"></div>
     </div>
     <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('student-edit-modal')">Cancel</button><button class="btn btn-gold" onclick="saveStudentEdit()">Save Changes →</button></div>
@@ -674,8 +678,15 @@ async function saveStudent() {
     document.getElementById('sm-success-email').textContent = email;
     document.getElementById('sm-success-password').textContent = password;
     document.getElementById('sm-success-box').style.display = 'block';
-    btn.style.display = 'none';
-    document.querySelector('#student-modal .btn-ghost').textContent = 'Done ✓';
+
+    // Auto-reset so another student can be created immediately (no refresh).
+    document.getElementById('sm-email').value = '';
+    document.getElementById('sm-password').value = '';
+    msg.textContent = 'Created! Add another, or close when done.';
+    msg.className = 'msg success show';
+    btn.textContent = 'Create Student →';
+    btn.disabled = false;
+    document.getElementById('sm-email').focus();
 
   } catch(err) {
     msg.textContent = 'Network error: ' + err.message;
@@ -1348,10 +1359,26 @@ async function saveStudentEdit() {
   const msg = document.getElementById('sem-msg');
   const xp = parseInt(document.getElementById('sem-xp').value) || 0;
   const title = document.getElementById('sem-title-sel').value;
-  const { error } = await sb.from('profiles').update({ xp, title }).eq('id', editingStudentId);
-  if (error) { msg.textContent = 'Error: ' + error.message; msg.className = 'msg error show'; return; }
+  // Uses a teacher-only RPC (direct profiles writes are locked by the trigger).
+  const { data, error } = await sb.rpc('admin_set_xp', { p_student_id: editingStudentId, p_xp: xp, p_title: title });
+  if (error || !data?.ok) { msg.textContent = 'Error: ' + (data?.error || error?.message || 'failed'); msg.className = 'msg error show'; return; }
   msg.textContent = 'Saved! ✓'; msg.className = 'msg success show';
   setTimeout(async () => { closeModal('student-edit-modal'); await loadAll(); }, 700);
+}
+
+function confirmResetFish() {
+  document.getElementById('confirm-msg').textContent = 'Reset this student\'s fish points to 0? This clears their entire fishing collection. Cannot be undone.';
+  document.getElementById('confirm-action-btn').onclick = () => resetFish(editingStudentId);
+  openModal('confirm-modal');
+}
+
+async function resetFish(studentId) {
+  const { data, error } = await sb.rpc('admin_reset_fish', { p_student_id: studentId });
+  closeModal('confirm-modal');
+  const msg = document.getElementById('sem-msg');
+  if (error || !data?.ok) { msg.textContent = 'Error: ' + (data?.error || error?.message || 'failed'); msg.className = 'msg error show'; return; }
+  msg.textContent = `Fish points reset (${data.deleted} catches cleared). ✓`; msg.className = 'msg success show';
+  await loadAll();
 }
 
 function confirmResetBelt(studentId, chapterId, belt) {
@@ -1426,24 +1453,17 @@ async function saveShopItem() {
   if (!id || !name) { msg.textContent = 'ID and Name are required.'; msg.className = 'msg error show'; return; }
   if (editingShopItemId) {
     const { error } = await sb.from('shop_items').update({ name, type, cost, description, preview_url, sort_order }).eq('id', id);
-    if (error) { msg.textContent = 'Error: '+error.message; msg.className = 'msg error show'; return; }
+    if (error) { msg.textContent = 'Error: ' + error.message; msg.className = 'msg error show'; return; }
   } else {
-    const { error } = await sb.from('shop_items').insert({ id, name, type, cost, description, preview_url, sort_order, active: true });
-    if (error) { msg.textContent = 'Error: '+error.message; msg.className = 'msg error show'; return; }
+    const { error } = await sb.from('shop_items').insert({ id, name, type, cost, description, preview_url, sort_order });
+    if (error) { msg.textContent = 'Error: ' + error.message; msg.className = 'msg error show'; return; }
   }
-  closeModal('shop-item-modal');
-  await loadAll();
-}
-
-async function toggleShopItem(id, active) {
-  await sb.from('shop_items').update({ active }).eq('id', id);
-  const item = shopItems.find(i => i.id === id);
-  if (item) item.active = active;
-  renderShop();
+  msg.textContent = 'Saved! ✓'; msg.className = 'msg success show';
+  setTimeout(async () => { closeModal('shop-item-modal'); await loadAll(); }, 700);
 }
 
 function confirmDeleteShopItem(id) {
-  document.getElementById('confirm-msg').textContent = `Delete shop item "${id}"? Students who own it keep it, but it won't appear in the shop.`;
+  document.getElementById('confirm-msg').textContent = `Delete shop item "${id}"? This cannot be undone.`;
   document.getElementById('confirm-action-btn').onclick = () => deleteShopItem(id);
   openModal('confirm-modal');
 }
@@ -1454,13 +1474,18 @@ async function deleteShopItem(id) {
   await loadAll();
 }
 
+// ── MODAL HELPERS ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
 
-function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
-function hideLoading() { const el=document.getElementById('loading-screen'); el.style.opacity='0'; el.style.transition='opacity 0.4s'; setTimeout(()=>el.style.display='none',400); }
-async function signOut() { await sb.auth.signOut(); window.location.href='login.html'; }
-
-init();
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
 </script>
 </body>
 </html>

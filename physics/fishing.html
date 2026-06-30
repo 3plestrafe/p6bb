@@ -405,9 +405,9 @@ const TRASH_DATA = [
 const ALL_ITEMS = [...FISH_DATA, ...TRASH_DATA];
 
 const BAIT = [
-  {id:'red',  name:'Basic Worm',  emoji:'🪱', xpCost:1, legendaryChance:0.01,  uncommonBonus:0,   trashChance:0.06, note:'Slow results'},
-  {id:'blue', name:'Power Grub',  emoji:'🦗', xpCost:2, legendaryChance:0.025, uncommonBonus:0.10, trashChance:0,   note:'Better odds'},
-  {id:'gold', name:'Golden Lure', emoji:'✨', xpCost:3, legendaryChance:0.04,  uncommonBonus:0.20, trashChance:0,   note:'Best results'},
+  {id:'red',  name:'Basic Worm',  emoji:'🪱', xpCost:5,  legendaryChance:0.01,  uncommonBonus:0,   trashChance:0.06, note:'Slow results'},
+  {id:'blue', name:'Power Grub',  emoji:'🦗', xpCost:8,  legendaryChance:0.025, uncommonBonus:0.10, trashChance:0,   note:'Better odds'},
+  {id:'gold', name:'Golden Lure', emoji:'✨', xpCost:10, legendaryChance:0.04,  uncommonBonus:0.20, trashChance:0,   note:'Best results'},
 ];
 
 // ── Minigame CFG ──
@@ -1137,19 +1137,22 @@ function toggleMute() {
   if (isMuted) {
     stopBg();
     stopReelLoop();
-    Object.values(audio).forEach(a => { try { a.pause(); } catch(e){} });
+    Object.values(audio).forEach(el => { try { el.pause(); } catch(e){} });
   } else {
-    if (mgActive) playBgAction();
-    else playBgIdle();
+    if (audioReady) {
+      audio['bg-idle'] && (audio['bg-idle'].volume = masterVolume * 0.8);
+      audio['bg-action'] && (audio['bg-action'].volume = masterVolume);
+    }
+    playBgIdle();
   }
 }
 
-function setVolume(val) {
-  masterVolume = parseFloat(val);
-  // Update any currently playing audio live
+function setVolume(v) {
+  masterVolume = parseFloat(v);
+  if (!audioReady) return;
   if (audio['bg-idle'])   audio['bg-idle'].volume   = masterVolume * 0.8;
-  if (audio['bg-action']) audio['bg-action'].volume  = masterVolume;
-  if (audio['sfx-reel'])  audio['sfx-reel'].volume   = Math.min(1, masterVolume * 0.7);
+  if (audio['bg-action']) audio['bg-action'].volume = masterVolume;
+  if (window._reelEl)     window._reelEl.volume     = masterVolume * 0.7;
 }
 </script>
 </body>
