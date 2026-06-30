@@ -268,6 +268,7 @@ const XP_WITH_HINT = 1;
 
 let user, questions=[], sessionQuestions=[], currentIdx=0, correct=0, answered=false;
 let chapterData = null;
+let attemptId = null;   // server-issued id for this quiz attempt
 
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
@@ -282,15 +283,30 @@ async function loadQuiz() {
   chapterData = ch;
   if (ch) document.getElementById('nav-chapter-belt').textContent = `${ch.title} - ${BELT_LABELS[belt]}`;
 
-  const { data: qs } = await sb.from('questions')
-    .select('*')
-    .eq('chapter_id', chapterId)
-    .eq('belt', belt);
+  // Server picks the questions + records the attempt. No answers sent to browser.
+  const { data, error } = await sb.rpc('start_quiz_attempt', {
+    p_chapter_id: chapterId,
+    p_belt: belt,
+    p_practice: isPracticeMode,
+  });
 
-  if (!qs || qs.length === 0) { show('empty'); return; }
+  if (error || !data?.ok) {
+    if (data?.error === 'no_questions') { show('empty'); return; }
+    show('empty');
+    return;
+  }
 
-  questions = shuffle(qs).slice(0, QUESTIONS_PER_QUIZ);
-  sessionQuestions = questions.map(q => generateQuestion(q));
+  attemptId = data.attempt_id;
+  // Each item: { variant_id, type, prompt, choices, formula }. No answer present.
+  sessionQuestions = data.questions.map(q => ({
+    variant_id: q.variant_id,
+    type: q.type,
+    filledTemplate: q.prompt,
+    filledFormula: q.formula || '',
+    allChoices: q.choices || [],
+    hintUsed: false,
+    wasCorrect: false,
+  }));
   renderBriefing();
   show('briefing');
 }
@@ -325,75 +341,8 @@ function renderBriefing() {
 
 function startQuiz() { show('quiz'); renderBeltBadge(); renderQuestion(); }
 
-// ── QUESTION ENGINE ──
-function generateQuestion(q) {
-  const resolvedParams = {};
-  for (const [key, cfg] of Object.entries(q.params || {})) {
-    if (cfg.min !== undefined && cfg.max !== undefined && cfg.min !== cfg.max) {
-      const steps = Math.floor((cfg.max - cfg.min) / (cfg.step || 1));
-      resolvedParams[key] = cfg.min + Math.floor(Math.random() * (steps + 1)) * (cfg.step || 1);
-    } else if (cfg.min !== undefined) {
-      resolvedParams[key] = cfg.min;
-    } else {
-      resolvedParams[key] = cfg;
-    }
-  }
-
-  let correctAnswer = null;
-  let correctAnswerRaw = null;
-  if (q.correct_expr) {
-    try {
-      const fn = new Function(...Object.keys(resolvedParams), `return ${q.correct_expr}`);
-      const val = fn(...Object.values(resolvedParams));
-      // If it's a string (conceptual MCQ), keep as string
-      if (typeof val === 'string') {
-        correctAnswer = val;
-        correctAnswerRaw = val;
-      } else {
-        correctAnswerRaw = val;
-        correctAnswer = Math.round(val * 100) / 100;
-      }
-    } catch(e) { console.warn('Error computing answer:', e); }
-  }
-
-  // For MCQ: build choices
-  let allChoices = [];
-  if (q.type !== 'numeric') {
-    const distractors = (q.distractor_exprs || []).map(expr => {
-      try {
-        const fn = new Function(...Object.keys(resolvedParams), `return ${expr}`);
-        const val = fn(...Object.values(resolvedParams));
-        if (typeof val === 'string') return val;
-        return Math.round(val * 100) / 100;
-      } catch(e) { return null; }
-    }).filter(v => v !== null && v !== correctAnswer);
-
-    allChoices = shuffle([correctAnswer, ...distractors.slice(0, 3)]);
-  }
-
-  return {
-    ...q,
-    resolvedParams,
-    correctAnswer,
-    correctAnswerRaw,
-    allChoices,
-    filledTemplate: fillTemplate(q.template, resolvedParams, correctAnswer),
-    filledExplanation: fillTemplate(q.explanation || '', resolvedParams, correctAnswer),
-    filledFormula: q.formula ? fillTemplate(q.formula, resolvedParams, correctAnswer) : '',
-  };
-}
-
-function fillTemplate(str, params, answer) {
-  if (!str) return '';
-  let result = str;
-  for (const [key, val] of Object.entries(params)) {
-    result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), val);
-  }
-  if (answer !== null && answer !== undefined) {
-    result = result.replace(/\{answer\}/g, typeof answer === 'number' ? answer : answer);
-  }
-  return result;
-}
+// Answers are computed and stored server-side (see generate-variants.mjs).
+// The browser never computes or holds correct answers anymore.
 
 function shuffle(arr) {
   const a = [...arr];
@@ -501,19 +450,37 @@ function revealHint() {
 }
 
 // ── MCQ ANSWER ──
-function selectAnswer(idx) {
+async function selectAnswer(idx) {
   if (answered) return;
   answered = true;
   const q = sessionQuestions[currentIdx];
   const selected = q.allChoices[idx];
-  const isCorrect = String(selected) === String(q.correctAnswer);
+
+  // Disable buttons while we wait for the server's verdict.
+  q.allChoices.forEach((_, i) => { document.getElementById('choice-' + i).disabled = true; });
+
+  const { data, error } = await sb.rpc('grade_answer', {
+    p_attempt_id: attemptId,
+    p_variant_id: q.variant_id,
+    p_answer: String(selected),
+    p_hint: !!q.hintUsed,
+  });
+
+  if (error || !data?.ok) {
+    // Re-enable so the student can retry if the call failed.
+    answered = false;
+    q.allChoices.forEach((_, i) => { document.getElementById('choice-' + i).disabled = false; });
+    return;
+  }
+
+  const isCorrect = data.correct;
   if (isCorrect) correct++;
   q.wasCorrect = isCorrect;
+  q.filledExplanation = data.explanation;
 
   q.allChoices.forEach((choice, i) => {
     const btn = document.getElementById('choice-' + i);
-    btn.disabled = true;
-    if (String(choice) === String(q.correctAnswer)) btn.classList.add('correct');
+    if (String(choice) === String(data.correct_answer)) btn.classList.add('correct');
     else if (i === idx && !isCorrect) btn.classList.add('wrong');
   });
 
@@ -522,7 +489,7 @@ function selectAnswer(idx) {
 }
 
 // ── NUMERIC ANSWER ──
-function submitNumeric() {
+async function submitNumeric() {
   if (answered) return;
   const q = sessionQuestions[currentIdx];
   const inp = document.getElementById('numeric-input');
@@ -534,19 +501,32 @@ function submitNumeric() {
   inp.disabled = true;
   document.getElementById('numeric-submit-btn').disabled = true;
 
-  const correct_val = q.correctAnswerRaw;
-  const tolerance = Math.abs(correct_val) * NUMERIC_TOLERANCE;
-  const isCorrect = Math.abs(userVal - correct_val) <= tolerance;
+  const { data, error } = await sb.rpc('grade_answer', {
+    p_attempt_id: attemptId,
+    p_variant_id: q.variant_id,
+    p_answer: String(userVal),
+    p_hint: !!q.hintUsed,
+  });
+
+  if (error || !data?.ok) {
+    // Re-enable so the student can retry if the call failed.
+    answered = false;
+    inp.disabled = false;
+    document.getElementById('numeric-submit-btn').disabled = false;
+    return;
+  }
+
+  const isCorrect = data.correct;
   q.wasCorrect = isCorrect;
+  q.filledExplanation = data.explanation;
 
   if (isCorrect) {
     correct++;
     inp.classList.add('correct');
   } else {
     inp.classList.add('wrong');
-    // Show the correct answer
     const revealEl = document.getElementById('correct-answer-reveal');
-    revealEl.textContent = `✓ Correct answer: ${Math.round(correct_val * 1000) / 1000}`;
+    revealEl.textContent = `✓ Correct answer: ${data.correct_answer}`;
     revealEl.className = 'correct-answer-reveal show';
   }
 
@@ -592,24 +572,29 @@ function nextQuestion() {
 }
 
 async function showResults() {
-  const total = sessionQuestions.length;
-  const score = Math.round((correct / total) * 100);
-  const passed = score >= PASS_THRESHOLD;
-  // XP is per-question: 1 XP if hint was used, full XP otherwise
-  // We track correctness per question via sessionQuestions[i].wasCorrect set in selectAnswer/submitNumeric
-  const xpEarned = sessionQuestions.reduce((sum, q) => {
-    if (!q.wasCorrect) return sum;
-    return sum + (q.hintUsed ? XP_WITH_HINT : XP_PER_CORRECT);
-  }, 0);
-  const attempts = await saveProgress(score, passed, xpEarned);
+  // Server finalizes: computes score, pass, and XP from its own grade records.
+  const { data, error } = await sb.rpc('submit_quiz_attempt', { p_attempt_id: attemptId });
+
+  if (error || !data?.ok) {
+    // Fall back to a safe display if finalize fails; nothing is awarded.
+    show('results');
+    document.getElementById('results-verdict').textContent = 'Could not save results - please try again.';
+    document.getElementById('results-verdict').className = 'results-verdict failed';
+    return;
+  }
+
+  const score = data.score;
+  const passed = data.passed;
+  const total = data.total;
+  const xpEarned = data.xp_earned;
 
   show('results');
   document.getElementById('results-score').textContent = score + '%';
   document.getElementById('results-icon').textContent = passed ? '🥋' : '💪';
-  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-correct').textContent = data.correct;
   document.getElementById('res-total').textContent = total;
   document.getElementById('res-xp').textContent = '+' + xpEarned;
-  document.getElementById('res-attempts').textContent = attempts;
+  document.getElementById('res-attempts').textContent = '';
 
   const verdict = document.getElementById('results-verdict');
   if (passed) {
@@ -628,31 +613,9 @@ async function showResults() {
   }
 }
 
-async function saveProgress(score, passed, xpEarned) {
-  const { data: existing } = await sb.from('progress')
-    .select('*').eq('student_id', user.id).eq('chapter_id', chapterId).eq('belt', belt).single();
-
-  const attempts = (existing?.attempts || 0) + 1;
-  const bestScore = Math.max(score, existing?.best_score || 0);
-  const alreadyPassed = existing?.passed || false;
-
-  if (existing) {
-    await sb.from('progress').update({ attempts, best_score: bestScore, passed: alreadyPassed || passed, updated_at: new Date().toISOString() }).eq('id', existing.id);
-  } else {
-    await sb.from('progress').insert({ student_id: user.id, chapter_id: chapterId, belt, attempts, best_score: bestScore, passed });
-  }
-
-  try {
-    const { data: rpcResult } = await sb.rpc('award_quiz_xp', { p_amount: xpEarned });
-    if (!rpcResult?.ok) console.warn('XP award failed:', rpcResult?.error);
-  } catch(e) { console.warn('XP update failed:', e); }
-
-  return attempts;
-}
-
-function retakeQuiz() {
+async function retakeQuiz() {
   currentIdx = 0; correct = 0; answered = false;
-  sessionQuestions = shuffle(questions).slice(0, QUESTIONS_PER_QUIZ).map(q => generateQuestion(q));
+  await loadQuiz();           // fresh server attempt with new questions
   show('quiz'); renderBeltBadge(); renderQuestion();
 }
 
