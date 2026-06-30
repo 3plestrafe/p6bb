@@ -33,6 +33,14 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 /* Fishing column: takes remaining space up to max */
 .fishing-col{flex:1;min-width:0;max-width:540px;display:flex;flex-direction:column;gap:0;}
 
+/* ── Mobile ── */
+@media(max-width:640px){
+  .main-scroll{flex-direction:column;align-items:stretch;padding:12px;}
+  .collection-col{width:100%;position:static;}
+  .fishing-col{max-width:100%;}
+  nav.nav{padding:10px 14px;}
+}
+
 /* ── Fishing window card ── */
 .fish-window{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:540px;overflow:hidden;}
 
@@ -142,7 +150,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 .catch-rarity-trash    {font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.06em;}
 
 /* Hold button */
-.btn-hold{width:100%;padding:12px;font-size:15px;font-weight:700;font-family:var(--mono);border:2px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);cursor:pointer;user-select:none;touch-action:none;-webkit-user-select:none;letter-spacing:0.06em;transition:background .1s,border-color .1s,color .1s;}
+.btn-hold{width:100%;padding:18px 12px;min-height:64px;font-size:17px;font-weight:700;font-family:var(--mono);border:2px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);cursor:pointer;user-select:none;touch-action:none;-webkit-user-select:none;letter-spacing:0.06em;transition:background .1s,border-color .1s,color .1s;}
 .btn-hold.held{background:rgba(74,222,128,0.12);border-color:var(--green);color:var(--green);}
 
 /* ── Collection panel ── */
@@ -1086,8 +1094,8 @@ function playCatchSequence() {
 }
 
 function startReelLoop() {
-  if (isMuted) return;
-  reelLoopActive = true;
+  if (isMuted || !mgActive) return;
+  if (window._reelEl) return; // already playing
   const r = new Audio('assets/audio/sfx-reel.mp3');
   r.loop = true;
   r.volume = masterVolume * 0.7;
