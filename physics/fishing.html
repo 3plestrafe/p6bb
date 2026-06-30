@@ -915,10 +915,14 @@ function endMinigame(token, success) {
     playCatchSequence(); // plays sfx-catch + chime, then fires playBgIdle when done
     showCatchFlash(true,rec);
   } else {
-    const missEl = new Audio('assets/audio/sfx-miss.mp3');
-    missEl.volume = Math.min(1, masterVolume * 0.85);
-    missEl.play().catch(()=>{});
-    missEl.onended = () => { playBgIdle(); };
+    if (!isMuted && audioReady) {
+      const missEl = new Audio('assets/audio/sfx-miss.mp3');
+      missEl.volume = Math.min(1, masterVolume * 0.85);
+      missEl.play().catch(()=>{});
+      missEl.onended = () => { playBgIdle(); };
+    } else {
+      playBgIdle();
+    }
     showCatchFlash(false,null);
   }
 }
@@ -1101,6 +1105,7 @@ function playSfx(key, relVolume) {
 
 // Play catch voice + chime simultaneously, then bg-idle after catch voice ends
 function playCatchSequence() {
+  if (isMuted || !audioReady) { playBgIdle(); return; }  // respect mute
   // sfx-catch and sfx-catch-chime play at the same time
   const catchEl = new Audio('assets/audio/sfx-catch.mp3');
   catchEl.volume = Math.min(1, masterVolume * 0.9);
