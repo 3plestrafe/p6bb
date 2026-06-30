@@ -229,7 +229,6 @@
         <div class="results-stat"><div class="results-stat-num" id="res-correct">0</div><div class="results-stat-label">Correct</div></div>
         <div class="results-stat"><div class="results-stat-num" id="res-total">0</div><div class="results-stat-label">Total</div></div>
         <div class="results-stat"><div class="results-stat-num" id="res-xp">0</div><div class="results-stat-label">XP Earned</div></div>
-        <div class="results-stat"><div class="results-stat-num" id="res-attempts">0</div><div class="results-stat-label">Attempt #</div></div>
       </div>
       <div id="belt-unlock-msg" style="display:none;background:rgba(45,212,160,0.08);border:1px solid rgba(45,212,160,0.2);border-radius:6px;padding:16px;margin-bottom:24px;font-family:var(--font-mono);font-size:12px;color:var(--teal);line-height:1.7;"></div>
       <div class="results-actions">
@@ -595,7 +594,6 @@ async function showResults() {
   document.getElementById('res-correct').textContent = data.correct;
   document.getElementById('res-total').textContent = total;
   document.getElementById('res-xp').textContent = '+' + xpEarned;
-  document.getElementById('res-attempts').textContent = '';
 
   const verdict = document.getElementById('results-verdict');
   if (passed) {
