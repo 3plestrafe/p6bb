@@ -481,6 +481,8 @@ const MG_CFG = {
 
 let selLocation=null, selBait=null, currentItem=null, currentCastId=null;
 let mgActive=false, isHolding=false, firstContact=false;
+let _mgToken=null;   // internal token — only tick() may call endMinigame
+let _biteToken=null; // internal token — only startCast() may call triggerBite
 let fishPos,fishVel,zonePos,zoneSpd,stamina,tension,momentum;
 let raf=null, lastTs=null;
 let burstState='resting', burstTimer=0, tugsRemaining=0, tugTimer=0;
@@ -660,10 +662,14 @@ async function startCast() {
   setStatus('Waiting for a bite...','');
 
   const wait=2500+Math.random()*4000;
-  setTimeout(()=>triggerBite(), wait);
+  _biteToken = Math.random().toString(36).slice(2);
+  const _bt = _biteToken;
+  setTimeout(()=>triggerBite(_bt), wait);
 }
 
-function triggerBite() {
+function triggerBite(token) {
+  if(token!==_biteToken) return;
+  _biteToken=null;
   setStatus('🐟 Fish on! Quick!','alert');
   document.getElementById('bobber').className='bobber bite';
   setTimeout(()=>openMinigame(), 700);
@@ -732,17 +738,19 @@ function openMinigame() {
 
   // 0.5s grace - panel + HOLD button visible before physics starts
   mgActive=false; lastTs=null; burstState='resting';
+  _mgToken = Math.random().toString(36).slice(2); // fresh token each game
+  const _tokenForThisGame = _mgToken;
   setTimeout(()=>{
     mgActive=true;
     scheduleRest();
     if(raf) cancelAnimationFrame(raf);
-    raf=requestAnimationFrame(tick);
+    raf=requestAnimationFrame(()=>tick(_tokenForThisGame));
   }, 500);
 }
 
-function tick(ts) {
-  if(!mgActive) return;
-  if(!lastTs){lastTs=ts;raf=requestAnimationFrame(tick);return;}
+function tick(token,ts) {
+  if(!mgActive||token!==_mgToken) return;
+  if(!lastTs){lastTs=ts;raf=requestAnimationFrame(tick.bind(null,token));return;}
   const dt=Math.min((ts-lastTs)/1000,0.08);
   lastTs=ts;
 
@@ -818,11 +826,11 @@ function tick(ts) {
   }
   zonePos=Math.max(0,Math.min(1-cfg.zoneWidth,zonePos));
 
-  if(fishPos>=cfg.winDist){endMinigame(true);return;}
-  if(tension>=100)        {endMinigame(false);return;}
+  if(fishPos>=cfg.winDist){endMinigame(token,true);return;}
+  if(tension>=100)        {endMinigame(token,false);return;}
 
   updateMgUI(isGreen,inZone,inDanger);
-  raf=requestAnimationFrame(tick);
+  raf=requestAnimationFrame(tick.bind(null,token));
 }
 
 function updateMgUI(isGreen,inZone,inDanger) {
@@ -869,7 +877,9 @@ function holdEnd() {
   stopReelLoop();
 }
 
-function endMinigame(success) {
+function endMinigame(token, success) {
+  if(token!==_mgToken) return; // reject calls not from the active tick loop
+  _mgToken=null; // invalidate so it can't be reused
   mgActive=false; isHolding=false;
   document.getElementById('btn-hold').classList.remove('held');
   if(raf) cancelAnimationFrame(raf);
