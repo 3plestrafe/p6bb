@@ -9,7 +9,7 @@
 .quiz-wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:24px 24px 80px;}
 
 .quiz-topbar{display:flex;align-items:center;gap:16px;margin-bottom:28px;}
-.quiz-back{background:none;border:1px solid var(--border);border-radius:3px;color:var(--text3);padding:6px 12px;cursor:pointer;font-family:var(--font-mono);font-size:10px;letter-spacing:0.04em;transition:all 0.15s;text-decoration:none;}
+.quiz-back{background:var(--bg2);border:1px solid var(--border);border-radius:20px;color:var(--text3);padding:7px 14px;cursor:pointer;font-family:var(--font-mono);font-size:10px;letter-spacing:0.04em;transition:all 0.15s;text-decoration:none;}
 .quiz-back:hover{color:var(--text);border-color:var(--border2);}
 .quiz-progress-wrap{flex:1;}
 .quiz-progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
@@ -19,19 +19,19 @@
 .belt-badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-display);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:16px;border:1px solid transparent;}
 
 /* Mission briefing */
-.briefing-card{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:36px 32px;text-align:center;animation:rise 0.4s forwards;}
-.briefing-tag{font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.16em;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.2);border-radius:20px;padding:4px 14px;display:inline-block;margin-bottom:20px;}
+.briefing-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:36px 32px;text-align:center;animation:rise 0.4s forwards;}
+.briefing-tag{font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.16em;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(216,179,112,0.2);border-radius:20px;padding:4px 14px;display:inline-block;margin-bottom:20px;}
 .briefing-icon{font-size:48px;margin-bottom:16px;}
-.briefing-chapter{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text);letter-spacing:0.04em;margin-bottom:6px;}
+.briefing-chapter{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.01em;margin-bottom:6px;}
 .briefing-belt{font-family:var(--font-mono);font-size:11px;color:var(--text3);letter-spacing:0.08em;margin-bottom:24px;}
-.briefing-scenario{background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:16px 20px;margin:0 0 28px;text-align:left;font-size:14px;color:var(--text2);line-height:1.8;}
+.briefing-scenario{background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:16px 20px;margin:0 0 28px;text-align:left;font-size:14px;color:var(--text2);line-height:1.8;}
 .briefing-meta{display:flex;justify-content:center;gap:20px;font-family:var(--font-mono);font-size:11px;color:var(--text3);margin-bottom:28px;flex-wrap:wrap;}
 .briefing-meta span{display:flex;align-items:center;gap:5px;}
-.briefing-start-btn{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;background:var(--gold);color:#111318;border:none;border-radius:6px;padding:14px 40px;cursor:pointer;transition:all 0.15s;}
-.briefing-start-btn:hover{background:var(--gold2);}
+.briefing-start-btn{font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:0.02em;background:var(--gold-grad);color:#161616;border:none;border-radius:14px;padding:14px 40px;cursor:pointer;transition:filter 0.15s;}
+.briefing-start-btn:hover{filter:brightness(1.06);}
 
 /* Question card */
-.question-card{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:28px;margin-bottom:16px;animation:rise 0.3s forwards;}
+.question-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px;margin-bottom:16px;animation:rise 0.3s forwards;}
 .question-num{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .question-type-badge{font-size:9px;padding:2px 8px;border-radius:3px;letter-spacing:0.06em;font-family:var(--font-display);}
 .type-mcq{background:rgba(74,144,217,0.12);color:#4a90d9;border:1px solid rgba(74,144,217,0.2);}
@@ -41,7 +41,7 @@
 
 /* MCQ choices */
 .choices{display:flex;flex-direction:column;gap:8px;margin-top:20px;}
-.choice-btn{text-align:left;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:14px 18px;cursor:pointer;font-size:14px;font-family:var(--font-body);color:var(--text);transition:all 0.15s;display:flex;align-items:center;gap:14px;width:100%;}
+.choice-btn{text-align:left;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:15px 18px;cursor:pointer;font-size:14px;font-family:var(--font-body);color:var(--text);transition:all 0.15s;display:flex;align-items:center;gap:14px;width:100%;}
 .choice-btn:hover:not(:disabled){border-color:var(--gold);background:var(--bg4);}
 .choice-btn:disabled{cursor:not-allowed;}
 .choice-btn.correct{border-color:var(--teal)!important;background:rgba(45,212,160,0.08)!important;color:var(--teal)!important;}
@@ -83,8 +83,8 @@
 .correct-answer-reveal{font-family:var(--font-mono);font-size:12px;color:var(--teal);margin-top:8px;padding:8px 12px;background:rgba(45,212,160,0.06);border-radius:4px;display:none;}
 .correct-answer-reveal.show{display:block;}
 
-.next-btn{width:100%;margin-top:14px;padding:14px;font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:var(--gold);color:#111318;border:none;border-radius:6px;cursor:pointer;transition:all 0.15s;display:none;}
-.next-btn:hover{background:var(--gold2);}
+.next-btn{width:100%;margin-top:14px;padding:14px;font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:0.02em;background:var(--gold-grad);color:#161616;border:none;border-radius:14px;cursor:pointer;transition:filter 0.15s;display:none;}
+.next-btn:hover{filter:brightness(1.06);}
 .next-btn.show{display:block;}
 
 /* Hint system */
@@ -102,9 +102,9 @@
 .hint-used-label{font-family:var(--font-mono);font-size:10px;color:#f5852a;letter-spacing:0.04em;padding:4px 0;}
 
 /* Results */
-.results-screen{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:40px 32px;text-align:center;animation:rise 0.4s forwards;}
+.results-screen{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:40px 32px;text-align:center;animation:rise 0.4s forwards;}
 .results-icon{font-size:52px;margin-bottom:16px;}
-.results-score{font-family:var(--font-display);font-size:48px;font-weight:900;color:var(--gold);letter-spacing:0.02em;line-height:1;margin-bottom:8px;}
+.results-score{font-family:var(--font-display);font-size:52px;font-weight:700;background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.02em;line-height:1;margin-bottom:8px;}
 .results-label{font-family:var(--font-mono);font-size:12px;color:var(--text3);letter-spacing:0.08em;margin-bottom:24px;}
 .results-verdict{font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:0.05em;padding:10px 24px;border-radius:4px;display:inline-block;margin-bottom:28px;}
 .results-verdict.passed{background:rgba(45,212,160,0.12);color:var(--teal);}
@@ -120,6 +120,17 @@
 .empty-state p{font-size:13px;color:var(--text3);font-family:var(--font-mono);line-height:1.7;}
 .quiz-loading{text-align:center;padding:60px 20px;}
 .quiz-loading-text{font-family:var(--font-mono);font-size:12px;color:var(--text3);letter-spacing:0.1em;animation:pulse 1.5s infinite;}
+
+/* MOBILE */
+@media(max-width:600px){
+  .quiz-wrap{padding:18px 16px 70px;}
+  .question-card{padding:20px;}
+  .briefing-card{padding:28px 20px;}
+  .results-screen{padding:32px 20px;}
+  .briefing-meta{gap:12px;}
+  .numeric-input-row{flex-direction:column;align-items:stretch;}
+  .numeric-submit-btn{width:100%;}
+}
 </style>
 </head>
 <body>
@@ -127,7 +138,7 @@
 <nav class="nav">
   <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
   <div class="nav-right">
-    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#2dd4a0;border:1px solid #2dd4a0;border-radius:4px;padding:2px 6px;letter-spacing:0.05em;">v2.1-secure</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#2dd4a0;border:1px solid #2dd4a0;border-radius:20px;padding:2px 8px;letter-spacing:0.05em;">v2.1-secure</span>
     <div class="nav-user" id="nav-chapter-belt">-</div>
     <a class="nav-btn" href="app.html">← Dashboard</a>
   </div>

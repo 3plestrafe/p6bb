@@ -59,6 +59,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .json-validate{display:flex;align-items:center;gap:8px;margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--text3);}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
 .modal-overlay.open{opacity:1;pointer-events:all;}
+#confirm-modal{z-index:250;} /* confirm prompt floats above any open modal */
 .modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;transform:translateY(8px);transition:transform 0.2s;}
 .modal-overlay.open .modal-box{transform:translateY(0);}
 .modal-hd{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}

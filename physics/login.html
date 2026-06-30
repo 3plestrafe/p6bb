@@ -13,21 +13,21 @@ body{display:flex;align-items:center;justify-content:center;overflow:hidden;}
 .emblem{text-align:center;margin-bottom:32px;}
 .emblem-icon{
   width:60px;height:60px;border-radius:50%;
-  background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.25);
+  background:var(--gold-dim);border:1px solid rgba(216,179,112,0.25);
   display:flex;align-items:center;justify-content:center;
   margin:0 auto 14px;font-size:24px;
 }
 .emblem h1{
-  font-family:'Orbitron',monospace;font-size:18px;font-weight:700;
-  color:#f0f0f0;letter-spacing:0.08em;margin-bottom:4px;
+  font-family:'Sora',sans-serif;font-size:20px;font-weight:700;
+  color:#f0f0f0;letter-spacing:-0.01em;margin-bottom:4px;
 }
-.emblem h1 em{color:#c9a96e;font-style:normal;}
-.emblem p{font-size:11px;color:#444;font-family:'IBM Plex Mono',monospace;letter-spacing:0.08em;}
+.emblem h1 em{color:var(--gold);font-style:normal;}
+.emblem p{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;}
 .pw-wrap{position:relative;}
 .pw-wrap input{padding-right:40px!important;}
-.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#444;cursor:pointer;font-size:13px;padding:4px;line-height:1;}
-.back-link{display:block;text-align:center;margin-top:16px;font-size:10px;color:#333;font-family:'IBM Plex Mono',monospace;text-decoration:none;transition:color 0.15s;letter-spacing:0.05em;}
-.back-link:hover{color:#666;}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px;line-height:1;}
+.back-link{display:block;text-align:center;margin-top:16px;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;text-decoration:none;transition:color 0.15s;letter-spacing:0.05em;}
+.back-link:hover{color:var(--text2);}
 </style>
 </head>
 <body>
@@ -61,12 +61,12 @@ body{display:flex;align-items:center;justify-content:center;overflow:hidden;}
     </div>
     <button class="btn btn-gold" id="submit-btn" onclick="doLogin()" style="width:100%;justify-content:center;margin-top:4px;">Sign In →</button>
     <div style="text-align:center;margin-top:12px;">
-      <button type="button" onclick="toggleForgot()" style="background:none;border:none;color:#555;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.05em;text-decoration:underline;padding:0;">Forgot password?</button>
+      <button type="button" onclick="toggleForgot()" style="background:none;border:none;color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.05em;text-decoration:underline;padding:0;">Forgot password?</button>
     </div>
 
     <!-- Forgot password panel -->
     <div id="forgot-panel" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#555;margin-bottom:10px;line-height:1.6;">Enter your email and we'll send you a reset link.</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);margin-bottom:10px;line-height:1.6;">Enter your email and we'll send you a reset link.</div>
       <div class="form-group" style="margin-bottom:8px;">
         <input type="email" id="reset-email" placeholder="yourname@school.edu.ph" style="width:100%;"/>
       </div>
@@ -74,7 +74,7 @@ body{display:flex;align-items:center;justify-content:center;overflow:hidden;}
     </div>
 
     <div class="divider"><span>need access?</span></div>
-    <p style="font-size:11px;color:#444;font-family:'IBM Plex Mono',monospace;line-height:1.7;text-align:center;">
+    <p style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;line-height:1.7;text-align:center;">
       Your teacher will provide your login credentials.<br>
       Contact your teacher if you cannot access your account.
     </p>
