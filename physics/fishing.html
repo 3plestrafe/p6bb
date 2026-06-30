@@ -4,25 +4,28 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Physics Black Belt - Fishing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
   --bg:#0d0f14;--surface:#141720;--surface2:#1c2030;
   --border:rgba(255,255,255,0.07);--text:#e8eaf0;--muted:#6b7280;
-  --gold:#c9a96e;--gold-dim:rgba(201,169,110,0.12);
+  --gold:#d8b370;--gold2:#eccd90;--gold-dim:rgba(216,179,112,0.12);--gold-grad:linear-gradient(135deg,#d8b370,#eccd90);
   --blue:#4a9eff;--green:#4ade80;--red:#f87171;--orange:#fb923c;
-  --mono:'Courier New',monospace;--radius:12px;
+  --mono:'JetBrains Mono','Courier New',monospace;--radius:16px;
 }
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;}
 
 /* ── Nav ── */
 nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);}
 .nav-logo{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--gold);letter-spacing:0.06em;text-decoration:none;}
 .nav-logo em{font-style:normal;color:var(--text);}
 .nav-right{display:flex;align-items:center;gap:10px;}
-.nav-btn{background:none;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:5px 12px;font-size:11px;font-family:var(--mono);cursor:pointer;text-decoration:none;letter-spacing:0.04em;transition:border-color .15s;}
+.nav-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--text);padding:6px 14px;font-size:11px;font-family:var(--mono);cursor:pointer;text-decoration:none;letter-spacing:0.04em;transition:border-color .15s;}
 .nav-btn:hover{border-color:rgba(255,255,255,0.3);}
-.coll-xp-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:7px 10px;background:var(--surface2);border:1px solid rgba(201,169,110,0.18);border-radius:8px;}
+.coll-xp-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:7px 10px;background:var(--surface2);border:1px solid rgba(216,179,112,0.18);border-radius:10px;}
 .coll-xp-label{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:0.06em;}
 .coll-xp-val{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--gold);}
 
@@ -42,7 +45,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 }
 
 /* ── Fishing window card ── */
-.fish-window{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:540px;overflow:hidden;}
+.fish-window{background:var(--surface);border:1px solid var(--border);border-radius:22px;width:100%;max-width:540px;overflow:hidden;}
 
 /* ── Window body: fixed layout so HOLD button never moves ── */
 .window-body{padding:16px 20px;display:grid;grid-template-rows:auto auto auto 1fr;gap:12px;}
@@ -107,8 +110,8 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 
 /* ── Cast ── */
 .cast-area{text-align:center;}
-.btn-cast{background:var(--gold);color:#0d0f14;border:none;border-radius:8px;padding:11px 36px;font-size:14px;font-weight:700;font-family:var(--mono);letter-spacing:0.06em;cursor:pointer;transition:opacity .2s;}
-.btn-cast:hover:not(:disabled){opacity:0.88;}
+.btn-cast{background:var(--gold-grad);color:#161616;border:none;border-radius:12px;padding:12px 36px;font-size:14px;font-weight:700;font-family:var(--mono);letter-spacing:0.04em;cursor:pointer;transition:filter .2s;}
+.btn-cast:hover:not(:disabled){filter:brightness(1.06);}
 .btn-cast:disabled{opacity:0.35;cursor:not-allowed;}
 .cast-hint{font-size:11px;color:var(--muted);margin-top:5px;font-family:var(--mono);}
 .xp-warn{font-size:11px;color:var(--red);margin-top:4px;font-family:var(--mono);}
@@ -146,7 +149,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 /* Catch flash rarity sizing */
 .catch-rarity-common   {font-family:var(--mono);font-size:11px;color:#9ca3af;letter-spacing:0.06em;}
 .catch-rarity-uncommon {font-family:var(--mono);font-size:13px;color:var(--blue);letter-spacing:0.06em;font-weight:700;}
-.catch-rarity-legendary{font-family:'Segoe UI Rounded','Segoe UI',system-ui,sans-serif;font-size:18px;color:var(--gold);font-weight:800;text-shadow:0 0 14px rgba(201,169,110,0.6),0 0 28px rgba(201,169,110,0.3);letter-spacing:0.04em;}
+.catch-rarity-legendary{font-family:'Segoe UI Rounded','Segoe UI',system-ui,sans-serif;font-size:18px;color:var(--gold);font-weight:800;text-shadow:0 0 14px rgba(216,179,112,0.6),0 0 28px rgba(216,179,112,0.3);letter-spacing:0.04em;}
 .catch-rarity-trash    {font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.06em;}
 
 /* Hold button */
@@ -154,7 +157,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 .btn-hold.held{background:rgba(74,222,128,0.12);border-color:var(--green);color:var(--green);}
 
 /* ── Collection panel ── */
-.collection-wrap{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;}
+.collection-wrap{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:14px 16px;}
 .coll-header{margin-bottom:10px;}
 .coll-title{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;}
 /* Total pts - playful rounded glow */
@@ -162,7 +165,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
   font-family:'Segoe UI Rounded','Segoe UI',system-ui,sans-serif;
   font-size:28px;font-weight:800;
   color:var(--gold);
-  text-shadow:0 0 12px rgba(201,169,110,0.55),0 0 28px rgba(201,169,110,0.25);
+  text-shadow:0 0 12px rgba(216,179,112,0.55),0 0 28px rgba(216,179,112,0.25);
   letter-spacing:-0.01em;
   margin-top:2px;
 }
@@ -181,7 +184,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
   font-family:'Segoe UI Rounded','Segoe UI',system-ui,sans-serif;
   font-size:11px;font-weight:700;
   color:var(--gold);
-  text-shadow:0 0 6px rgba(201,169,110,0.4);
+  text-shadow:0 0 6px rgba(216,179,112,0.4);
 }
 .coll-empty{color:var(--muted);font-size:11px;text-align:center;padding:24px 0;font-family:var(--mono);}
 /* rarity accent */
@@ -220,7 +223,7 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 <nav class="nav">
   <a class="nav-logo" href="app.html">PHYSICS <em>BLACK BELT</em></a>
   <div class="nav-right">
-    <div id="nav-xp-badge" style="display:none;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:4px 12px;letter-spacing:0.04em;">
+    <div id="nav-xp-badge" style="display:none;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(216,179,112,0.25);border-radius:20px;padding:4px 12px;letter-spacing:0.04em;">
       ⚡ <span id="nav-xp">0</span> XP
     </div>
     <div style="display:flex;align-items:center;gap:6px;">
@@ -945,7 +948,7 @@ function showCatchFlash(success,rec) {
     titleEl.textContent=isTrash?'You caught... trash?':isLegendary?'LEGENDARY CATCH!!':isUncommon?'Nice catch!':'You caught it!';
     titleEl.style.fontSize=isLegendary?'24px':isUncommon?'20px':'19px';
     titleEl.style.color=isLegendary?'var(--gold)':isUncommon?'var(--blue)':'var(--text)';
-    if(isLegendary) titleEl.style.textShadow='0 0 16px rgba(201,169,110,0.5)';
+    if(isLegendary) titleEl.style.textShadow='0 0 16px rgba(216,179,112,0.5)';
     else titleEl.style.textShadow='none';
     document.getElementById('catch-sub').textContent=isTrash?'At least it\'s in the collection':isLegendary?'An extraordinary find!':'Added to your collection';
     itemRow.style.display='flex';
