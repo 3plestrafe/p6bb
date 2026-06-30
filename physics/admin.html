@@ -1474,6 +1474,12 @@ async function deleteShopItem(id) {
   await loadAll();
 }
 
+// ── LOADING SCREEN ──
+function hideLoading() {
+  const el = document.getElementById('loading-screen');
+  if (el) el.style.display = 'none';
+}
+
 // ── MODAL HELPERS ──
 function openModal(id) {
   document.getElementById(id).classList.add('open');
