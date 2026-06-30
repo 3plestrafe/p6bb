@@ -370,6 +370,8 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentXP = 0;
+let _inputLog = [];      // anti-cheat: hold/release events for the current minigame
+let _mgStart = null;     // performance.now() at minigame start
 
 // ══════════════════════════════════════════════
 //  DATA
@@ -714,6 +716,9 @@ function fireTug(isGreen) {
 }
 
 function openMinigame() {
+  // Anti-cheat: record player inputs to prove a real play session to the server.
+  _inputLog=[];
+  _mgStart=performance.now();
   const rarity=currentItem.rarity==='trash'?'common':currentItem.rarity;
   mgCfg=Object.assign({},MG_CFG[rarity]||MG_CFG.common);
 
@@ -868,11 +873,13 @@ function updateMgUI(isGreen,inZone,inDanger) {
 function holdStart(e) {
   if(e) e.preventDefault();
   isHolding=true;
+  if(_mgStart!=null) _inputLog.push({t:Math.round(performance.now()-_mgStart),a:'down'});
   document.getElementById('btn-hold').classList.add('held');
   startReelLoop();
 }
 function holdEnd() {
   isHolding=false;
+  if(_mgStart!=null) _inputLog.push({t:Math.round(performance.now()-_mgStart),a:'up'});
   document.getElementById('btn-hold').classList.remove('held');
   stopReelLoop();
 }
@@ -897,7 +904,7 @@ function endMinigame(token, success) {
 
   // Tell the server the minigame outcome - it logs to fish_catches only on win
   // Store the promise so closeCatchFlash can await it before refreshing collection
-  window._resolvePromise = sb.rpc('resolve_cast', { p_cast_id: currentCastId, p_won: success });
+  window._resolvePromise = sb.rpc('resolve_cast', { p_cast_id: currentCastId, p_won: success, p_inputs: _inputLog });
 
   if(success){
     const rec={
