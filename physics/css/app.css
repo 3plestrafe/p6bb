@@ -100,6 +100,7 @@ body::after{
 .nav-btn:hover{color:var(--text);border-color:var(--border2);background:var(--bg3);}
 .nav-btn.admin{color:var(--teal);border-color:rgba(45,212,160,0.3);}
 .nav-btn.admin:hover{background:var(--teal-dim);}
+.nav-btn.icon-only{padding:8px 11px;font-size:15px;line-height:1;}
 
 /* ── PAGE WRAPPER ── */
 .page{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:0 32px 100px;}
