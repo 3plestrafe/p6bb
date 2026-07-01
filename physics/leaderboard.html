@@ -230,7 +230,7 @@ async function loadFishingLeaderboard() {
 
   // Podium - reuse existing renderer with pts as "score"
   const top3 = ranked.slice(0, 3).map(r => ({ ...r, belts: r.pts, breakdown: {} }));
-  renderPodium(top3, nameMap, titleMap, bgMap);
+  renderPodium(top3, nameMap, titleMap, bgMap, 'pt');
 
   // Table
   const rows = ranked.map(entry => {
@@ -347,7 +347,7 @@ const BG_AVATAR_COLORS = {
   'bg-void':    '#0d1a2e',
 };
 
-function renderPodium(top3, nameMap, titleMap, bgMap) {
+function renderPodium(top3, nameMap, titleMap, bgMap, unit = 'belt') {
   if (top3.length === 0) { document.getElementById('podium-wrap').innerHTML = ''; return; }
 
   const slots = [];
@@ -367,7 +367,7 @@ function renderPodium(top3, nameMap, titleMap, bgMap) {
           <div class="podium-avatar" style="${avatarBg}">${getInitials(name)}</div>
           <div class="podium-name">${escHtml(name)}${s.student_id === user.id ? ' <span style="color:var(--gold);font-size:9px;">(you)</span>' : ''}</div>
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--gold);letter-spacing:0.06em;">${escHtml(playerTitle)}</div>
-          <div class="podium-score">${s.belts} belt${s.belts !== 1 ? 's' : ''}</div>
+          <div class="podium-score">${s.belts} ${unit}${s.belts !== 1 ? 's' : ''}</div>
           <div class="podium-block">${s.blockLabel}</div>
         </div>`;
       }).join('')}

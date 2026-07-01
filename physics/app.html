@@ -33,11 +33,11 @@
     <div id="nav-xp-badge" style="display:none;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:4px 12px;letter-spacing:0.04em;">
       ⚡ <span id="nav-xp">0</span> XP
     </div>
-    <a class="nav-btn" href="fishing.html" style="text-decoration:none;">🎣 Fishing</a>
-    <a class="nav-btn" href="shop.html" style="text-decoration:none;">🛒 Shop</a>
-    <a class="nav-btn" href="leaderboard.html" style="text-decoration:none;">🏆 Leaderboard</a>
+    <a class="nav-btn icon-only" href="fishing.html" title="Fishing" style="text-decoration:none;">🎣</a>
+    <a class="nav-btn icon-only" href="shop.html" title="Shop" style="text-decoration:none;">🛒</a>
+    <a class="nav-btn icon-only" href="leaderboard.html" title="Leaderboard" style="text-decoration:none;">🏆</a>
     <div class="nav-user">logged in as <span id="nav-email">-</span></div>
-    <button class="nav-btn" onclick="signOut()">Sign out</button>
+    <button class="nav-btn icon-only" onclick="signOut()" title="Sign out">🚪</button>
   </div>
 </nav>
 
@@ -161,7 +161,7 @@ async function loadProfile() {
   document.getElementById('greeting-name').textContent = name;
   if (profile?.role === 'teacher') {
     document.getElementById('admin-link-wrap').innerHTML =
-      '<a class="nav-btn admin" href="admin.html">⚙ Admin</a>';
+      '<a class="nav-btn admin icon-only" href="admin.html" title="Admin">⚙</a>';
   }
   // Show XP in nav
   const xp = profile?.xp || 0;

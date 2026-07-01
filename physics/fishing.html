@@ -22,9 +22,10 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans','Seg
 nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);}
 .nav-logo{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--gold);letter-spacing:0.06em;text-decoration:none;}
 .nav-logo em{font-style:normal;color:var(--text);}
-.nav-right{display:flex;align-items:center;gap:10px;}
+.nav-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
 .nav-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--text);padding:6px 14px;font-size:11px;font-family:var(--mono);cursor:pointer;text-decoration:none;letter-spacing:0.04em;transition:border-color .15s;}
 .nav-btn:hover{border-color:rgba(255,255,255,0.3);}
+.nav-btn.icon-only{padding:6px 10px;font-size:14px;}
 .coll-xp-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:7px 10px;background:var(--surface2);border:1px solid rgba(216,179,112,0.18);border-radius:10px;}
 .coll-xp-label{font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:0.04em;}
 .coll-xp-val{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--gold);}
@@ -171,7 +172,8 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 }
 .coll-total-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;}
 .coll-list{display:flex;flex-direction:column;gap:5px;max-height:calc(100vh - 200px);overflow-y:auto;}
-.coll-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;}
+.coll-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;transition:border-color .15s;}
+.coll-item:hover{border-color:rgba(255,255,255,0.25);}
 .coll-icon{flex-shrink:0;width:44px;height:64px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:4px;}
 .coll-icon img{width:44px;height:64px;object-fit:contain;image-rendering:pixelated;}
 .coll-icon-emoji{font-size:22px;}
@@ -204,14 +206,37 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
 .catch-emoji-big{font-size:48px;margin-bottom:8px;}
 .catch-title{font-size:19px;font-weight:700;margin-bottom:5px;}
 .catch-sub{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:14px;}
-.catch-item-row{display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:10px;padding:11px 14px;margin-bottom:14px;text-align:left;}
-.catch-item-icon{width:52px;height:75px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.catch-item-icon img{width:52px;height:75px;object-fit:contain;image-rendering:pixelated;}
-.catch-item-icon-emoji{font-size:36px;}
+.catch-item-row{display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--surface2);border-radius:10px;padding:18px 14px 14px;margin-bottom:14px;text-align:center;}
 .catch-item-name{font-size:14px;font-weight:600;}
 .catch-item-pts{font-family:var(--mono);font-size:10px;color:var(--gold);margin-top:2px;}
 .btn-back{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 24px;font-size:12px;font-family:var(--mono);cursor:pointer;transition:border-color .2s;letter-spacing:0.04em;}
 .btn-back:hover{border-color:rgba(255,255,255,0.3);}
+
+/* ── Spinning card ── */
+.spin-card-stage{position:relative;width:150px;height:210px;margin:0 auto;perspective:900px;}
+.spin-card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;animation:spin360 7s linear infinite;}
+@keyframes spin360{from{transform:rotateY(0deg);}to{transform:rotateY(360deg);}}
+.spin-card-face{position:absolute;inset:0;border-radius:12px;background:#000;border:2px solid #4b5563;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;}
+.spin-card-face.back{transform:rotateY(180deg);}
+.spin-card-face img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated;}
+.spin-card-emoji{font-size:56px;}
+.spin-card-back-mark{font-size:30px;opacity:0.35;}
+.spin-card-stage.uncommon .spin-card-face{border-color:var(--blue);box-shadow:0 0 16px rgba(74,158,255,0.35);}
+.spin-card-stage.legendary .spin-card-face{border-color:var(--gold);box-shadow:0 0 22px rgba(216,179,112,0.55);}
+.spin-card-stage.common .spin-card-face{border-color:#4b5563;}
+.spin-card-stage.trash .spin-card-face{border-color:#374151;}
+.card-glitter{position:absolute;inset:0;pointer-events:none;z-index:3;}
+.glitter-dot{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px rgba(255,255,255,0.85);opacity:0;animation:glitter-pulse 1.6s ease-in-out infinite;}
+@keyframes glitter-pulse{0%,100%{opacity:0;transform:scale(0.4);}50%{opacity:1;transform:scale(1.2);}}
+
+/* ── Card viewer (collection click) ── */
+#card-viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:210;align-items:center;justify-content:center;}
+#card-viewer.active{display:flex;}
+.card-viewer-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;text-align:center;max-width:280px;width:88%;position:relative;animation:pop-in .25s cubic-bezier(.175,.885,.32,1.275);}
+.card-viewer-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;}
+.card-viewer-close:hover{color:var(--text);}
+.card-viewer-name{font-size:15px;font-weight:700;margin-top:16px;}
+.card-viewer-meta{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px;}
 
 /* ── XP toast ── */
 #xp-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 20px;font-family:var(--mono);font-size:13px;color:var(--gold);opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:300;}
@@ -233,8 +258,8 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
         style="width:70px;height:4px;accent-color:var(--gold);cursor:pointer;opacity:0.4;pointer-events:none;"
         disabled title="Volume"/>
     </div>
-    <a class="nav-btn" href="app.html" style="text-decoration:none;">← Dashboard</a>
-    <button class="nav-btn" onclick="signOut()">Sign out</button>
+    <a class="nav-btn icon-only" href="app.html" title="Dashboard" style="text-decoration:none;">🏠</a>
+    <button class="nav-btn icon-only" onclick="signOut()" title="Sign out">🚪</button>
   </div>
 </nav>
 
@@ -349,12 +374,20 @@ nav.nav{display:flex;align-items:center;justify-content:space-between;padding:12
     <div class="catch-sub" id="catch-sub"></div>
     <div class="catch-item-row" id="catch-item-row" style="display:none">
       <div class="catch-item-icon" id="catch-item-icon"></div>
-      <div>
-        <div class="catch-item-name" id="catch-item-name"></div>
-        <div class="catch-item-pts" id="catch-item-pts"></div>
-      </div>
+      <div class="catch-item-name" id="catch-item-name"></div>
+      <div class="catch-item-pts" id="catch-item-pts"></div>
     </div>
     <button class="btn-back" onclick="closeCatchFlash()">← Back to Selection</button>
+  </div>
+</div>
+
+<!-- Card viewer (opened from collection) -->
+<div id="card-viewer" onclick="closeCardViewer()">
+  <div class="card-viewer-box" onclick="event.stopPropagation()">
+    <button class="card-viewer-close" onclick="closeCardViewer()">✕</button>
+    <div id="card-viewer-stage"></div>
+    <div class="card-viewer-name" id="card-viewer-name"></div>
+    <div class="card-viewer-meta" id="card-viewer-meta"></div>
   </div>
 </div>
 
@@ -406,6 +439,52 @@ const TRASH_DATA = [
 ];
 
 const ALL_ITEMS = [...FISH_DATA, ...TRASH_DATA];
+
+// Maps item id -> actual image file. Items with no art yet (boot, tire) are
+// simply omitted here, which falls back to the emoji display.
+const ITEM_IMG = {
+  sunfish:  'assets/sunfish.jpg',
+  perch:    'assets/perch.jpg',
+  catfish:  'assets/catfish.jpg',
+  mackerel: 'assets/mackerel.jpg',
+  bass:     'assets/bass.jpg',
+  jellyfish:'assets/jellyfish.jpg',
+  rockfish: 'assets/rockfish.jpg',
+  salmon:   'assets/salmon.jpg',
+  shrimp:   'assets/shrimp.jpg',
+};
+
+function iconHtml(id, emoji, emojiClass) {
+  const src = ITEM_IMG[id];
+  if (!src) return `<span class="${emojiClass}">${emoji}</span>`;
+  return `<img src="${src}" alt="${emoji}" onerror="this.parentElement.innerHTML='<span class=\\'${emojiClass}\\'>${emoji}</span>'">`;
+}
+
+// Builds a full auto-spinning 3D card (front = art/emoji, back = black placeholder).
+// Glitter overlay only added for uncommon+ rarity (trash/common stay plain).
+function buildSpinCardHtml(item) {
+  const front = iconHtml(item.id, item.emoji, 'spin-card-emoji');
+  const showGlitter = item.rarity === 'uncommon' || item.rarity === 'legendary';
+  let glitter = '';
+  if (showGlitter) {
+    let dots = '';
+    for (let i = 0; i < 14; i++) {
+      const top = (Math.random() * 100).toFixed(1);
+      const left = (Math.random() * 100).toFixed(1);
+      const delay = (Math.random() * 1.6).toFixed(2);
+      dots += `<span class="glitter-dot" style="top:${top}%;left:${left}%;animation-delay:${delay}s;"></span>`;
+    }
+    glitter = `<div class="card-glitter">${dots}</div>`;
+  }
+  return `
+    <div class="spin-card-stage ${item.rarity}">
+      <div class="spin-card-inner">
+        <div class="spin-card-face front">${front}</div>
+        <div class="spin-card-face back"><span class="spin-card-back-mark">🎣</span></div>
+      </div>
+      ${glitter}
+    </div>`;
+}
 
 const BAIT = [
   {id:'red',  name:'Basic Worm',  emoji:'🪱', xpCost:3, legendaryChance:0.01,  uncommonBonus:0,   trashChance:0.06, note:'Slow results'},
@@ -952,9 +1031,7 @@ function showCatchFlash(success,rec) {
     else titleEl.style.textShadow='none';
     document.getElementById('catch-sub').textContent=isTrash?'At least it\'s in the collection':isLegendary?'An extraordinary find!':'Added to your collection';
     itemRow.style.display='flex';
-    const catchIconEl=document.getElementById('catch-item-icon');
-    const catchImgPath=rec.rarity==='trash'?`assets/trash_${rec.id}.png`:`assets/fish_${rec.id}.png`;
-    catchIconEl.innerHTML=`<img src="${catchImgPath}" alt="${rec.name}" onerror="this.parentElement.innerHTML='<span class=\\'catch-item-icon-emoji\\'>${rec.emoji}</span>'">`;
+    document.getElementById('catch-item-icon').innerHTML=buildSpinCardHtml(rec);
     document.getElementById('catch-item-name').textContent=rec.name;
     const ptsEl=document.getElementById('catch-item-pts');
     ptsEl.textContent=rec.pts>0?`+${rec.pts} pts`:'No points';
@@ -1021,10 +1098,8 @@ async function renderCollection() {
     div.className=`coll-item ${item.rarity}`;
     const pts=POINTS[item.rarity]||0;
     const totalItemPts=ptsEarned[item.id]||0;
-    const imgPath=item.rarity==='trash'?`assets/trash_${item.id}.png`:`assets/fish_${item.id}.png`;
-    const iconHtml=`<img src="${imgPath}" alt="${item.name}" onerror="this.parentElement.innerHTML='<span class=\\'coll-icon-emoji\\'>${item.emoji}</span>'">`;
     div.innerHTML=`
-      <div class="coll-icon">${iconHtml}</div>
+      <div class="coll-icon">${iconHtml(item.id, item.emoji, 'coll-icon-emoji')}</div>
       <div class="coll-info">
         <div class="coll-name">${item.name}</div>
         <div class="coll-pts-each">${pts>0?pts+' pts each':'No pts'}</div>
@@ -1034,8 +1109,25 @@ async function renderCollection() {
         <div class="coll-item-pts">${totalItemPts>0?totalItemPts+' pts':''}</div>
       </div>
     `;
+    div.onclick=()=>openCardViewer(item.id,counts[item.id],totalItemPts);
     list.appendChild(div);
   });
+}
+
+// ══════════════════════════════════════════════
+//  CARD VIEWER (opened by clicking a collection item)
+// ══════════════════════════════════════════════
+
+function openCardViewer(id,count,totalPts) {
+  const item=ALL_ITEMS.find(i=>i.id===id);
+  if(!item) return;
+  document.getElementById('card-viewer-stage').innerHTML=buildSpinCardHtml(item);
+  document.getElementById('card-viewer-name').textContent=item.name;
+  document.getElementById('card-viewer-meta').textContent=`×${count} caught · ${totalPts>0?totalPts+' pts total':'No pts'}`;
+  document.getElementById('card-viewer').classList.add('active');
+}
+function closeCardViewer() {
+  document.getElementById('card-viewer').classList.remove('active');
 }
 
 boot();
